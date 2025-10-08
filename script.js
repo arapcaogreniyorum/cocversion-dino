@@ -9,14 +9,14 @@ let score = 0;
 let gameSpeed = 20; 
 
 // Barbar'ın YENİ boyutları
-const BARBARIAN_WIDTH = 30; // GÜNCELLENDİ
-const BARBARIAN_HEIGHT = 30; // GÜNCELLENDİ
+const BARBARIAN_WIDTH = 30;
+const BARBARIAN_HEIGHT = 30;
 
 // Engel'in YENİ boyutları
-const OBSTACLE_WIDTH = 28; // GÜNCELLENDİ
-const OBSTACLE_HEIGHT = 28; // GÜNCELLENDİ
+const OBSTACLE_WIDTH = 28;
+const OBSTACLE_HEIGHT = 28;
 
-// Zıplama ve Konum Parametreleri (Aynı kaldı)
+// Zıplama ve Konum Parametreleri
 const JUMP_HEIGHT = '80px';
 const JUMP_DURATION_MS = 150; 
 const FALL_DURATION_MS = 150; 
@@ -70,14 +70,13 @@ function createObstacle() {
         }
 
         obstaclePosition -= 10; 
-        // CSS 'right' özelliğini ayarlıyoruz
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
 
-        // 3. Çarpışma Kontrolü (GÜNCELLENMİŞ BOYUTLARLA)
+        // 3. Çarpışma Kontrolü
         // ----------------------------------------
 
-        // Engelin Sol Pozisyonunu Hesaplama (Oyun alanının Sol kenarından uzaklığı)
+        // Engelin Sol Pozisyonunu Hesaplama
         const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
         const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
 
@@ -85,13 +84,10 @@ function createObstacle() {
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
 
         // X Ekseni Çakışması: 
-        // Barbar'ın sağ kenarı Engelin sol kenarını geçmiş VE
-        // Barbar'ın sol kenarı Engelin sağ kenarını geçmemiş olmalı.
         const x_collision = (BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH > obstacleLeftPosition && 
                             BARBARIAN_LEFT_POSITION < obstacleLeftPosition + OBSTACLE_WIDTH);
 
         // Y Ekseni Çakışması: 
-        // Barbar'ın alt kenarı (zeminden yüksekliği) Engelin yüksekliğinden küçük olmalı.
         const y_collision = (barbarianBottom < OBSTACLE_HEIGHT);
 
         // ÇARPIŞMA!
@@ -120,7 +116,7 @@ function updateScore() {
     score++;
     scoreDisplay.innerHTML = `Puan: ${score}`;
     if (score % 5 === 0 && gameSpeed > 5) {
-        gameSpeed -= 1; // Oyunu hızlandır
+        gameSpeed -= 1; 
     }
 }
 
