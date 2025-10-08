@@ -1,12 +1,12 @@
 body {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* Açık gri arka plan */
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
     font-family: Arial, sans-serif;
-    /* Gerekçe: Görseli pikselleştirmek için */
+    /* Görseli pikselleştirmek için */
     image-rendering: pixelated; 
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
@@ -15,8 +15,8 @@ body {
 #game-container {
     width: 600px;
     height: 150px;
-    border-bottom: 3px solid #663300;
-    background-color: #a0a0a0;
+    border-bottom: 3px solid #663300; /* Kahverengi zemin çizgisi */
+    background-color: #a0a0a0; /* Harita zemin rengi */
     position: relative;
     overflow: hidden;
 }
@@ -25,13 +25,13 @@ body {
 #barbarian {
     width: 20px;
     height: 30px;
-    /* Barbar'ın saçını temsil eden hafif sarı/turuncu */
+    /* Barbar'ın saçını temsil eden sarı/turuncu */
     background: linear-gradient(to top, #FFD700 70%, #FF8C00 70%); 
     position: absolute;
     bottom: 0;
-    left: 50px;
-    transition: bottom 0.15s ease-out; /* Zıplamayı daha keskin yapar */
-    border: 1px solid black; /* Piksel kenarlık hissi verir */
+    left: 50px; /* Barbar sabit duruyor */
+    transition: bottom 0.15s ease-out; /* Zıplamayı yumuşak göstermek için */
+    border: 1px solid black; 
 }
 
 /* Engel görünümü (Top) */
@@ -41,7 +41,8 @@ body {
     background-color: #4B0082; /* Koyu mor (Clash savunma rengi) */
     position: absolute;
     bottom: 0;
-    right: -15px;
+    /* Engelin soldan sağa hareket edebilmesi için 'left' kullanacağız */
+    left: -15px; 
     border: 1px solid black;
 }
 
@@ -49,6 +50,7 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
-    color: black; /* Puanı daha görünür yaptık */
+    color: black; 
     font-weight: bold;
+    z-index: 10; /* Engellerin üstünde kalmasını sağlar */
 }
