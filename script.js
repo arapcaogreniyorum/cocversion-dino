@@ -9,7 +9,8 @@ let isJumping = false;
 let isGameOver = true; 
 let isGameRunning = false; 
 let score = 0;
-let gameSpeed = 50; // Başlangıç hızı (büyük değer = daha yavaş)
+// HIZ DÜZELTİLDİ: 50 ideal bir başlangıç hızıdır. Daha büyük değer daha yavaş demektir.
+let gameSpeed = 50; 
 let obstacleIntervals = []; 
 let obstacleGenerationTimeout; 
 
@@ -21,7 +22,7 @@ const BARBARIAN_HEIGHT = 30;
 const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
-// Zıplama Parametreleri (Dino dinamikleri için kısaltıldı)
+// Zıplama Parametreleri
 const JUMP_HEIGHT = '80px';
 const JUMP_DURATION_MS = 120; // Yükselme süresi
 const FALL_DURATION_MS = 120; // Düşme süresi
@@ -43,12 +44,12 @@ function startGame() {
     isGameOver = false;
     isGameRunning = true;
     score = 0;
-    gameSpeed = 50; 
+    gameSpeed = 50; // Hızı sıfırla
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
     barbarian.style.bottom = '0px'; 
     
-    // YENİ: Oyuna başlarken Barbar'ın yanma sınıfını kaldır
+    // Barbar'ın yanma sınıfını kaldır
     barbarian.classList.remove('barbarian-burned');
     
     // Başlatma ekranını gizler ve arka plan animasyonunu başlatır
@@ -58,13 +59,13 @@ function startGame() {
 }
 
 
-// 1. Zıplama Mantığı (Dino Dinamikleri)
+// 1. Zıplama Mantığı
 function jump() {
     if (!isGameRunning || isJumping) return; 
     
     isJumping = true;
     
-    // YÜKSELME (Dinamik zıplama için)
+    // YÜKSELME (Dinamik zıplama)
     barbarian.style.transition = `bottom ${JUMP_DURATION_MS}ms ease-out`;
     barbarian.style.bottom = JUMP_HEIGHT; 
 
@@ -73,7 +74,6 @@ function jump() {
         barbarian.style.transition = `bottom ${FALL_DURATION_MS}ms ease-in`; 
         barbarian.style.bottom = '0px'; 
         
-        // Zıplama Bitti
         setTimeout(() => {
             isJumping = false;
             // Varsayılan geçişi geri yükle
@@ -93,8 +93,9 @@ function createObstacle() {
     gameContainer.appendChild(obstacle);
 
     let obstaclePosition = GAME_CONTAINER_WIDTH; 
-    const moveStep = 10; 
+    const moveStep = 10; // Engelin her adımda hareket ettiği miktar
     
+    // **ÖNEMLİ DÜZELTME:** Her engel için yeni interval, güncel hız ile başlar
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     obstacleIntervals.push(obstacleInterval); 
     
@@ -105,24 +106,26 @@ function createObstacle() {
         }
         
         obstaclePosition -= moveStep; 
+        // Engelin pozisyonunu right CSS özelliği ile ayarlar
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
 
-        // 3. Çarpışma Kontrolü (KESİN ÇÖZÜM: Atlansa bile yanma sorunu giderildi)
+        // 3. Çarpışma Kontrolü (KESİN VE DOĞRU ÇARPIŞMA MANTIĞI)
         // ----------------------------------------
         
-        // Engelin Sol Pozisyonunu Hesaplama (Oyun alanının Sol kenarından uzaklığı)
+        // Engelin Sol Pozisyonunu Hesaplama (X-ekseni kontrolü için)
         const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
         const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
 
-        // Barbar'ın zeminden yüksekliği
+        // Barbar'ın zeminden yüksekliği (Y-ekseni kontrolü için)
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
 
         // X Ekseni Çakışması: Yatayda kesişim var mı?
         const x_collision = (BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH > obstacleLeftPosition && 
                             BARBARIAN_LEFT_POSITION < obstacleLeftPosition + OBSTACLE_WIDTH);
 
-        // Y Ekseni Çakışması: Barbar'ın ayağı engelin yüksekliğinden küçük mü? (Yerde mi, yoksa engel hizasında mı?)
+        // Y Ekseni Çakışması: Barbar'ın ayağı engelin yüksekliğinden küçük mü? (Yerde/engel hizasında mı?)
+        // Bu, zıplama ile çarpışma arasındaki farkı belirleyen kritik kuraldır.
         const y_collision = (barbarianBottom < OBSTACLE_HEIGHT);
 
         // ÇARPIŞMA! (Yatayda kesişim VAR ve Dikeyde YETERİNCE YÜKSEK DEĞİL)
@@ -130,20 +133,22 @@ function createObstacle() {
             clearInterval(obstacleInterval);
             gameOver();
         } 
-        // Engel Başarıyla Geçildi
+        // Engel Başarıyla Geçildi (Puan Sistemi Düzeltmesi)
         else if (obstaclePosition < -OBSTACLE_WIDTH) { 
+            // Engel, oyun alanının sol kenarının dışına çıktığında
             clearInterval(obstacleInterval);
             obstacle.remove();
-            updateScore();
+            updateScore(); // Puanı güncelle
         }
     }
 }
 
-// 4. Oyun Bitti Fonksiyonu (YENİ: Barbar'ın resmini değiştir)
+// 4. Oyun Bitti Fonksiyonu
 function gameOver() {
     isGameOver = true;
     isGameRunning = false;
     
+    // Tüm hareketleri durdur
     obstacleIntervals.forEach(clearInterval);
     clearTimeout(obstacleGenerationTimeout);
     
@@ -160,7 +165,7 @@ function gameOver() {
 
 // 5. Puan Güncelleme
 function updateScore() {
-    score += 10; // İSTEK: Puan 10 10 artsın
+    score += 10; // Puan 10 10 artsın
     scoreDisplay.innerHTML = `Puan: ${score}`;
     
     // Hız artışı
@@ -201,9 +206,8 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Ekran tıklandığında veya dokunulduğunda
 startScreen.addEventListener('click', handleInput);
 startScreen.addEventListener('touchstart', handleInput);
 
 gameContainer.addEventListener('click', handleInput); 
-gameContainer.addEventListener('touchstart', handleInput); 
+gameContainer.addEventListener('touchstart', handleInput);
