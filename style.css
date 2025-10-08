@@ -20,33 +20,50 @@ body {
     overflow: hidden;
 }
 
-/* GÜNCEL KOD: Barbar artık resim kullanıyor */
+/* --- BARBAR ANIMASYON VE BOYUT --- */
+@keyframes run {
+    /* 4 kareden oluşan bir sprite sheet'i kaydırıyoruz. */
+    to { background-position: -90px 0; }
+}
+
 #barbarian {
-    width: 32px; /* Resme uyacak şekilde boyut büyütüldü */
-    height: 32px;
-    /* Gerekçe: Arka plan resmi olarak barbarian.png dosyasını kullan */
-    background-image: url('barbarian.png');
-    background-size: cover; /* Resmin kutuya sığmasını sağlar */
-    background-color: transparent; /* Eskiden kullandığımız sarı rengi kaldır */
-    border: none; /* Eskiden kullandığımız piksel kenarlığı kaldır */
+    width: 30px; /* YENİ BOYUT: 30px */
+    height: 30px; /* YENİ BOYUT: 30px */
+    
+    /* Koşma animasyonu sprite sheet'i kullanılıyor */
+    background-image: url('barbarian_run.png'); 
+    background-size: 120px 30px; /* 4 kare * 30px genişlik = 120px */
+    
+    background-color: transparent; 
+    border: none; 
     position: absolute;
     bottom: 0;
     left: 50px;
     transition: bottom 0.15s ease-out;
+    
+    /* KOŞMA ANİMASYONU BAŞLAT */
+    animation: run 0.6s steps(4) infinite; 
 }
 
-/* GÜNCEL KOD: Engel (Top) artık resim kullanıyor */
+/* Zıplama anında animasyonu durdurmak için */
+.is-jumping {
+    animation-play-state: paused !important;
+    background-position: 0 0; 
+}
+
+/* --- ENGEL BOYUTU --- */
 .obstacle {
-    width: 30px; /* Resme uyacak şekilde boyut büyütüldü */
-    height: 30px;
-    /* Gerekçe: cannon.png dosyasını kullan */
+    width: 28px; /* YENİ BOYUT: 28px */
+    height: 28px; /* YENİ BOYUT: 28px */
+    
     background-image: url('cannon.png');
     background-size: cover;
     background-color: transparent;
     border: none;
     position: absolute;
     bottom: 0;
-    right: -30px; /* Yeni boyuta göre başlangıç konumunu ayarla */
+    /* Yeni boyuta göre başlangıç konumunu ayarla */
+    right: -28px; 
     left: auto; 
 }
 
