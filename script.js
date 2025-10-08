@@ -16,7 +16,7 @@ const FALL_DURATION_MS = 150;
 
 // --- FONKSİYONLAR ---
 
-// 1. Zıplama Mantığı (Önceki Adımdan)
+// 1. Zıplama Mantığı
 function jump() {
     if (isJumping || isGameOver) return;
     
@@ -34,16 +34,16 @@ function jump() {
     }, JUMP_DURATION_MS); 
 }
 
-// 2. Engel Oluşturma Mantığı
+// 2. Engel Oluşturma ve Hareket Mantığı
 function createObstacle() {
     if (isGameOver) return;
 
-    // Gerekçe: Yeni bir Top (engel) oluştururuz.
     const obstacle = document.createElement('div');
     obstacle.classList.add('obstacle');
     gameContainer.appendChild(obstacle);
 
-    let obstaclePosition = 600; // Oyun alanının en sağından başlar (600px genişlik)
+    // Başlangıç Konumu: Sol kenarın hemen dışı
+    let obstaclePosition = -15; 
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     
     // Engel hareket ettirme ve çarpışma kontrolü
@@ -53,44 +53,40 @@ function createObstacle() {
             return;
         }
 
-        obstaclePosition -= 10; // 10 birim sola hareket ettir.
-        obstacle.style.right = obstaclePosition + 'px';
+        obstaclePosition += 10; // 10 birim sağa hareket ettir.
+        obstacle.style.left = obstaclePosition + 'px';
 
-        // 3. Çarpışma Kontrolü (En Kritik Mantık)
+        // 3. Çarpışma Kontrolü (Soldan Sağa Hareket İçin)
         // ----------------------------------------
         
-        // Barbar'ın konumu (X=50px, Y=30px, Boyut=20px)
+        // Barbar'ın konumu ve boyutları
         const barbarianLeft = 50;
-        const barbarianWidth = 20;
+        const barbarianRight = barbarianLeft + 20; // Barbar'ın sağ kenarı (70px)
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
-        const barbarianHeight = 30; // Barbar'ın yüksekliği
+        const barbarianHeight = 30; 
 
-        // Engelin konumu ve boyutları (X, Y=0, Boyut=15px, Yükseklik=25px)
-        const obstacleRight = obstaclePosition;
-        const obstacleWidth = 15;
+        // Engelin konumu ve boyutları
+        const obstacleLeft = obstaclePosition;
+        const obstacleRight = obstaclePosition + 15; // Engelin sağ kenarı
         const obstacleHeight = 25;
 
-        // Gerekçe: Çarpışma, iki koşulun aynı anda doğru olmasıyla gerçekleşir:
-        // A) X Ekseni Çakışması: Barbar'ın sağ kenarı engelin sol kenarını geçmiş VE 
-        //    Barbar'ın sol kenarı engelin sağ kenarını geçmemiş olmalı.
-        // B) Y Ekseni Çakışması: Barbar zeminde değil (zıplıyor) VE 
-        //    Barbar'ın alt kenarı engelin üst kenarından aşağıda olmalı.
-
-        const x_collision = (obstacleRight > (gameContainer.offsetWidth - barbarianLeft - barbarianWidth) && 
-                            obstacleRight < gameContainer.offsetWidth - barbarianLeft);
+        // X Ekseni Çakışması: Engelin sağ kenarı Barbar'ın solunu geçmiş VE Engelin sol kenarı Barbar'ın sağını geçmemiş olmalı.
+        const x_collision = (obstacleRight > barbarianLeft && 
+                            obstacleLeft < barbarianRight);
         
+        // Y Ekseni Çakışması: Barbar zeminde (Y=0) veya zıplıyor VE Barbar'ın alt kenarı engelin üst kenarından aşağıda olmalı.
         const y_collision = (barbarianBottom < obstacleHeight);
 
-        // A ve B koşulları sağlanıyorsa, ÇARPIŞMA!
+        // ÇARPIŞMA!
         if (x_collision && y_collision) {
             clearInterval(obstacleInterval);
             gameOver();
         } 
         // Engel Başarıyla Geçildi
-        else if (obstaclePosition <= -15) { // Engel ekran dışına çıktığında
+        else if (obstaclePosition >= gameContainer.offsetWidth) { // Engel ekranın sağından dışarı çıktığında
             clearInterval(obstacleInterval);
-            obstacle.remove(); // Engeli DOM'dan kaldır
-            updateScore(); // Puanı arttır
+            obstacle.remove();
+            updateScore();
         }
     }
 }
@@ -107,21 +103,19 @@ function gameOver() {
 function updateScore() {
     score++;
     scoreDisplay.innerHTML = `Puan: ${score}`;
-    // Oyun hızını kademeli olarak arttırarak zorlaştırma
+    // Hızlandırma
     if (score % 5 === 0 && gameSpeed > 5) {
-        gameSpeed -= 1; // Hızı arttır
+        gameSpeed -= 1; 
     }
 }
 
 // 6. Engel Döngüsünü Başlatma
 function generateObstacles() {
-    // Gerekçe: Engellerin rastgele aralıklarla (1000ms ile 3000ms arası) oluşmasını sağlar.
-    // Bu, T-Rex Dino oyunundaki rastgelelik mantığıdır.
+    // Engellerin rastgele aralıklarla (1000ms ile 3000ms arası) oluşmasını sağlar.
     let randomTime = Math.random() * 2000 + 1000; 
     createObstacle();
     
     if (!isGameOver) {
-        // Tekrar etme döngüsünü kurar
         setTimeout(generateObstacles, randomTime);
     }
 }
@@ -129,8 +123,9 @@ function generateObstacles() {
 
 // --- KODUN UYGULANMASI (BAŞLATMA) ---
 
-// Zıplama Olay Dinleyicileri (Önceki Adım)
+// Zıplama Olay Dinleyicileri (Klavye ve Mobil)
 document.addEventListener('keydown', (event) => {
+    // Sadece Space tuşunu dinler
     if (event.code === 'Space') {
         jump();
         event.preventDefault(); 
