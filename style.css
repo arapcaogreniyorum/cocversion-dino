@@ -1,46 +1,54 @@
 body {
-    background-color: #f0f0f0; /* Açık gri arka plan */
+    background-color: #f0f0f0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Tam ekran yüksekliği */
+    height: 100vh;
     margin: 0;
     font-family: Arial, sans-serif;
+    /* Gerekçe: Görseli pikselleştirmek için */
+    image-rendering: pixelated; 
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 
 #game-container {
     width: 600px;
     height: 150px;
-    border-bottom: 3px solid #663300; /* Kahverengi zemin çizgisi */
-    background-color: #a0a0a0; /* Harita zemin rengi */
-    position: relative; /* Çocuk elementlerin (Barbar, Engel) konumunu ayarlamak için */
-    overflow: hidden; /* Engellerin soldan kaybolmasını sağlar */
+    border-bottom: 3px solid #663300;
+    background-color: #a0a0a0;
+    position: relative;
+    overflow: hidden;
 }
 
+/* Barbar'ın pikselleştirilmiş ve Barbar Rengi */
 #barbarian {
     width: 20px;
     height: 30px;
-    background-color: gold; /* Barbar'ı temsil eden sarı renk */
-    position: absolute; /* Konumunu serbestçe ayarlamamızı sağlar */
-    bottom: 0; /* Zeminde başlar */
-    left: 50px; /* Oyun alanının solunda başlar */
-    transition: bottom 0.2s; /* Zıplamayı yumuşak göstermek için */
+    /* Barbar'ın saçını temsil eden hafif sarı/turuncu */
+    background: linear-gradient(to top, #FFD700 70%, #FF8C00 70%); 
+    position: absolute;
+    bottom: 0;
+    left: 50px;
+    transition: bottom 0.15s ease-out; /* Zıplamayı daha keskin yapar */
+    border: 1px solid black; /* Piksel kenarlık hissi verir */
 }
 
 /* Engel görünümü (Top) */
 .obstacle {
     width: 15px;
     height: 25px;
-    background-color: darkgray; /* Topu temsil eden gri renk */
+    background-color: #4B0082; /* Koyu mor (Clash savunma rengi) */
     position: absolute;
     bottom: 0;
-    right: -15px; /* Oyunun sağından dışarıdan başlar */
+    right: -15px;
+    border: 1px solid black;
 }
 
 #score {
     position: absolute;
     top: 10px;
     right: 10px;
-    color: white;
+    color: black; /* Puanı daha görünür yaptık */
     font-weight: bold;
 }
