@@ -18,8 +18,9 @@ const BARBARIAN_HEIGHT = 30;
 const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
-// YENİ: Çarpışma için 5 piksellik hata payı eklenmiştir.
-const OBSTACLE_TOLERANCE_PX = 5;
+// YENİ TOLERANS AYARI: Barbar'ın Hitbox'ını (Vuruş Alanını) küçültüyoruz
+const BARBARIAN_HITBOX_ADJUSTMENT = 5; // Yatayda 5 piksel tolerans
+const OBSTACLE_TOLERANCE_PX = 5; // Dikeyde 5 piksel tolerans (önceki adımdan kaldı)
 
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
@@ -61,18 +62,15 @@ function jump() {
     
     isJumping = true;
     
-    // YÜKSELME (Dinamik zıplama)
     barbarian.style.transition = `bottom ${JUMP_DURATION_MS}ms ease-out`;
     barbarian.style.bottom = JUMP_HEIGHT; 
 
-    // DÜŞME
     setTimeout(() => {
         barbarian.style.transition = `bottom ${FALL_DURATION_MS}ms ease-in`; 
         barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
         
         setTimeout(() => {
             isJumping = false;
-            // Varsayılan geçişi geri yükle (CSS'teki 0.1s ile aynı)
             barbarian.style.transition = 'bottom 0.1s ease-out'; 
             
         }, FALL_DURATION_MS); 
@@ -104,18 +102,21 @@ function createObstacle() {
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
 
-        // 3. Çarpışma Kontrolü (Nihai ve Toleranslı Mantık)
+        // 3. Çarpışma Kontrolü (Yatayda Tolerans Eklendi)
         const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
         const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
 
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
 
-        // X Ekseni Çakışması: Yatayda kesişim var mı?
-        const x_collision = (BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH > obstacleLeftPosition && 
-                            BARBARIAN_LEFT_POSITION < obstacleLeftPosition + OBSTACLE_WIDTH);
+        // X GÜNCELLENDİ: Barbar'ın sol başlangıç noktasına 5px tolerans eklendi.
+        const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
+        const effectiveBarbarianWidth = BARBARIAN_WIDTH - BARBARIAN_HITBOX_ADJUSTMENT;
 
-        // Y GÜNCELLENDİ: Barbar'ın bottom değeri, engelin yüksekliğinden (28px) 5px'lik tolerans çıkarılarak kontrol edilir.
-        // Barbar'ın tabanı 23px'in üzerindeyse (yani zıplıyorsa), çarpışma sayılmaz.
+        // Yatayda Çarpışma Kontrolü
+        const x_collision = (effectiveBarbarianLeft + effectiveBarbarianWidth > obstacleLeftPosition && 
+                            effectiveBarbarianLeft < obstacleLeftPosition + OBSTACLE_WIDTH);
+
+        // Dikeyde Çarpışma Kontrolü (Toleranslı)
         const y_collision = (barbarianBottom < (OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_PX));
 
 
@@ -155,7 +156,6 @@ function updateScore() {
     score += 10; 
     scoreDisplay.innerHTML = `Puan: ${score}`;
     
-    // Hız artışı
     if (score % 50 === 0 && gameSpeed > 1) { 
         gameSpeed -= 1; 
     }
