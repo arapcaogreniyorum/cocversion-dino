@@ -48,8 +48,8 @@ body {
     position: absolute;
     bottom: 0;
     left: 50px;
-    /* JUMP_DURATION_MS (120ms) ile eşleşmeli */
-    transition: bottom 0.12s ease-out; 
+    /* GÜNCELLENDİ: Zıplama animasyonunu hızlandırdık (0.1s) */
+    transition: bottom 0.1s ease-out; 
     
     animation: none;
 }
