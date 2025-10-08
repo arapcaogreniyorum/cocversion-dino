@@ -16,16 +16,17 @@ const BARBARIAN_HEIGHT = 32;
 const OBSTACLE_WIDTH = 30;
 const OBSTACLE_HEIGHT = 30;
 
-// Zıplama Parametreleri (Aynı kaldı)
+// Zıplama Parametreleri
 const JUMP_HEIGHT = '80px';
 const JUMP_DURATION_MS = 150; 
 const FALL_DURATION_MS = 150; 
 const BARBARIAN_LEFT_POSITION = 50;
+const GAME_CONTAINER_WIDTH = 600; // Oyun alanının genişliği (style.css'ten alınmıştır)
 
 
 // --- FONKSİYONLAR ---
 
-// 1. Zıplama Mantığı (Aynı kaldı)
+// 1. Zıplama Mantığı
 function jump() {
     if (isJumping || isGameOver) return;
     
@@ -52,7 +53,7 @@ function createObstacle() {
     gameContainer.appendChild(obstacle);
 
     // Başlangıç Konumu: Oyun alanının en sağı (600px genişlik varsayımı)
-    let obstaclePosition = 600; 
+    let obstaclePosition = GAME_CONTAINER_WIDTH; 
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     
     // Engel hareket ettirme ve çarpışma kontrolü
@@ -63,24 +64,29 @@ function createObstacle() {
         }
 
         obstaclePosition -= 10; // 10 birim sola hareket ettir.
-        obstacle.style.right = (600 - obstaclePosition) + 'px';
+        // CSS 'right' özelliğini ayarlıyoruz
+        obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
 
-        // 3. Çarpışma Kontrolü (Sağdan Sola Hareket, Yeni Boyutlarla)
+        // 3. Çarpışma Kontrolü (GÜNCELLENMİŞ MANTIK)
         // ----------------------------------------
-        
-        // Engelin sağdan uzaklığı
-        const obstacleRightOffset = parseInt(obstacle.style.right);
-        
+
+        // Engelin Sol Pozisyonunu Hesaplama (Oyun alanının Sol kenarından uzaklığı)
+        // gameContainerWidth - (CSS right değeri) - OBSTACLE_WIDTH
+        const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
+        const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
+
         // Barbar'ın zeminden yüksekliği
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
 
-        // X Ekseni Çakışması: Engelin sol kenarı Barbar'ın sağ kenarını geçmiş VE 
-        //                    Engelin sağ kenarı Barbar'ın sol kenarını geçmemiş olmalı.
-        const x_collision = (obstacleRightOffset > BARBARIAN_LEFT_POSITION && 
-                            obstacleRightOffset < BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH);
-        
-        // Y Ekseni Çakışması: Barbar'ın alt kenarı engelin yüksekliğinden küçük olmalı.
+        // X Ekseni Çakışması (Sol Pozisyonları Kullanarak):
+        // Barbar'ın sağ kenarı Engelin sol kenarını geçmiş VE
+        // Barbar'ın sol kenarı Engelin sağ kenarını geçmemiş olmalı.
+        const x_collision = (BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH > obstacleLeftPosition && 
+                            BARBARIAN_LEFT_POSITION < obstacleLeftPosition + OBSTACLE_WIDTH);
+
+        // Y Ekseni Çakışması: 
+        // Barbar'ın alt kenarı (zeminden yüksekliği) Engelin yüksekliğinden küçük olmalı.
         const y_collision = (barbarianBottom < OBSTACLE_HEIGHT);
 
         // ÇARPIŞMA!
@@ -105,18 +111,18 @@ function gameOver() {
     alert(`Oyun Bitti! Barbar'ın Puanı: ${score}`);
 }
 
-// 5. Puan Güncelleme (Aynı kaldı)
+// 5. Puan Güncelleme
 function updateScore() {
     score++;
     scoreDisplay.innerHTML = `Puan: ${score}`;
     if (score % 5 === 0 && gameSpeed > 5) {
-        gameSpeed -= 1; 
+        gameSpeed -= 1; // Her 5 puanda bir oyunu hızlandır
     }
 }
 
-// 6. Engel Döngüsünü Başlatma (Aynı kaldı)
+// 6. Engel Döngüsünü Başlatma
 function generateObstacles() {
-    let randomTime = Math.random() * 2000 + 1000; 
+    let randomTime = Math.random() * 2000 + 1000; // 1 ile 3 saniye arasında rastgele bekleme
     createObstacle();
     
     if (!isGameOver) {
