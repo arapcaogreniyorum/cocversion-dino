@@ -1,0 +1,46 @@
+body {
+    background-color: #f0f0f0; /* Açık gri arka plan */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Tam ekran yüksekliği */
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+#game-container {
+    width: 600px;
+    height: 150px;
+    border-bottom: 3px solid #663300; /* Kahverengi zemin çizgisi */
+    background-color: #a0a0a0; /* Harita zemin rengi */
+    position: relative; /* Çocuk elementlerin (Barbar, Engel) konumunu ayarlamak için */
+    overflow: hidden; /* Engellerin soldan kaybolmasını sağlar */
+}
+
+#barbarian {
+    width: 20px;
+    height: 30px;
+    background-color: gold; /* Barbar'ı temsil eden sarı renk */
+    position: absolute; /* Konumunu serbestçe ayarlamamızı sağlar */
+    bottom: 0; /* Zeminde başlar */
+    left: 50px; /* Oyun alanının solunda başlar */
+    transition: bottom 0.2s; /* Zıplamayı yumuşak göstermek için */
+}
+
+/* Engel görünümü (Top) */
+.obstacle {
+    width: 15px;
+    height: 25px;
+    background-color: darkgray; /* Topu temsil eden gri renk */
+    position: absolute;
+    bottom: 0;
+    right: -15px; /* Oyunun sağından dışarıdan başlar */
+}
+
+#score {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-weight: bold;
+}
