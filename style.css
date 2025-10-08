@@ -11,7 +11,6 @@ body {
     image-rendering: crisp-edges;
 }
 
-/* YENİ: Arka Plan Animasyonu Tanımı */
 @keyframes scrollBackground {
     from { background-position: 0 0; }
     to { background-position: -600px 0; }
@@ -22,7 +21,6 @@ body {
     height: 150px;
     border-bottom: 3px solid #663300;
     
-    /* ZEMİN/ARKA PLAN AYARI VE YOL DÜZELTİLDİ */
     background-image: url('clash-runner/ground_scroll.png'); 
     background-size: auto 100%; 
     background-repeat: repeat-x; 
@@ -30,21 +28,18 @@ body {
     position: relative;
     overflow: hidden;
 
-    /* Arka plan animasyonu (başlangıçta durduruldu) */
     animation: scrollBackground 3s linear infinite paused; 
 }
 
-/* Oyun çalıştığında arka plan animasyonunu başlatır */
 .is-running {
     animation-play-state: running !important;
 }
 
-/* --- BARBAR (30x30) - ANİMASYON KALDIRILDI --- */
+/* --- BARBAR (30x30) --- */
 #barbarian {
     width: 30px; 
     height: 30px; 
     
-    /* VARSAYILAN TEK KARE RESİM */
     background-image: url('clash-runner/barbarian.png'); 
     background-size: cover; 
     
@@ -53,14 +48,12 @@ body {
     position: absolute;
     bottom: 0;
     left: 50px;
-    /* Zıplama dinamikleri için kısaltılmış transition süresi */
+    /* JUMP_DURATION_MS (120ms) ile eşleşmeli */
     transition: bottom 0.12s ease-out; 
     
-    /* Animasyon kaldırıldı */
     animation: none;
 }
 
-/* YENİ: Barbar yandığında kullanılacak stil */
 .barbarian-burned {
     background-image: url('clash-runner/barbarian_yan.png') !important;
 }
@@ -70,7 +63,6 @@ body {
     width: 28px; 
     height: 28px; 
     
-    /* RESİM YOLU DÜZELTİLDİ */
     background-image: url('clash-runner/cannon.png');
     background-size: cover;
     background-color: transparent;
@@ -110,7 +102,6 @@ body {
     box-sizing: border-box;
 }
 
-/* Oyun başladığında ekranı gizler */
 .is-running #start-screen {
     display: none;
 }
