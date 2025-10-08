@@ -6,35 +6,36 @@ const startScreen = document.getElementById('start-screen');
 const messageDisplay = document.getElementById('message');
 
 let isJumping = false;
-let isGameOver = true; // Oyun başlangıçta BİTTİ durumda olmalı (başlatma ekranını göstermek için)
-let isGameRunning = false; // Oyunun çalışıp çalışmadığını kontrol eder
+let isGameOver = true;
+let isGameRunning = false;
 let score = 0;
-let gameSpeed = 30; // HIZ DÜZELTİLDİ: Başlangıçta daha yavaş (eski 20 idi, şimdi 30 daha yavaş) 
-let obstacleIntervals = []; // Tüm engel döngülerini tutmak için DİZİ
+let gameSpeed = 40; // DÜZELTİLDİ: Başlangıç hızı yavaşlatıldı (Dino hissiyatı için daha büyük değer = daha yavaş)
+let obstacleIntervals = []; 
+let obstacleGenerationTimeout; // Engel döngüsü için timeout değişkeni
 
-// Barbar'ın YENİ boyutları
+// Barbar ve Engel Boyutları (30x30 ve 28x28)
 const BARBARIAN_WIDTH = 30;
 const BARBARIAN_HEIGHT = 30;
-
-// Engel'in YENİ boyutları
 const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
-// Zıplama ve Konum Parametreleri
+// Zıplama Parametreleri
 const JUMP_HEIGHT = '80px';
-const JUMP_DURATION_MS = 150; 
-const FALL_DURATION_MS = 150; 
+// DÜZELTİLDİ: Zıplamayı daha dinamik yapmak için süreler kısaltıldı (Dino gibi)
+const JUMP_DURATION_MS = 120; // Yükselme süresi
+const FALL_DURATION_MS = 120; // Düşme süresi
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 600; 
 
 
 // --- FONKSİYONLAR ---
 
-// Yeni: Oyunu sıfırlar ve başlatır
+// Oyunu sıfırlar ve başlatır
 function startGame() {
-    // Tüm engel döngülerini temizle
+    // Tüm önceki döngüleri ve zamanlayıcıları temizle
     obstacleIntervals.forEach(clearInterval);
     obstacleIntervals = []; 
+    clearTimeout(obstacleGenerationTimeout);
     
     // Oyun alanındaki tüm engelleri kaldır
     document.querySelectorAll('.obstacle').forEach(obs => obs.remove());
@@ -42,12 +43,13 @@ function startGame() {
     isGameOver = false;
     isGameRunning = true;
     score = 0;
-    gameSpeed = 30; // Hızı sıfırla
+    gameSpeed = 40; // Hızı sıfırla
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
-    barbarian.style.bottom = '0px'; // Barbar'ı zemine indir
+    barbarian.style.bottom = '0px'; 
     
-    // CSS sınıfını ekleyerek Başlangıç ekranını gizle ve animasyonu başlat
+    // BAŞLANGIÇ EKRANI BUG DÜZELTİLDİ:
+    // is-running sınıfını eklemek, style.css'teki kural sayesinde #start-screen'i gizler.
     gameContainer.classList.add('is-running');
     
     generateObstacles(); // Engel döngüsünü başlat
@@ -56,19 +58,25 @@ function startGame() {
 
 // 1. Zıplama Mantığı
 function jump() {
-    if (!isGameRunning || isJumping) return; // Sadece oyun çalışırken zıpla
+    if (!isGameRunning || isJumping) return;
     
     isJumping = true;
     barbarian.classList.add('is-jumping'); 
 
+    // YÜKSELME
+    barbarian.style.transition = `bottom ${JUMP_DURATION_MS}ms ease-out`;
     barbarian.style.bottom = JUMP_HEIGHT; 
 
+    // DÜŞME
     setTimeout(() => {
+        barbarian.style.transition = `bottom ${FALL_DURATION_MS}ms ease-in`; // Dinamik düşüş için ease-in kullanıldı
         barbarian.style.bottom = '0px'; 
         
+        // Zıplama Bitti
         setTimeout(() => {
             isJumping = false;
             barbarian.classList.remove('is-jumping'); 
+            barbarian.style.transition = 'bottom 0.15s ease-out'; // Varsayılan geçişi geri yükle
             
         }, FALL_DURATION_MS); 
 
@@ -84,8 +92,11 @@ function createObstacle() {
     gameContainer.appendChild(obstacle);
 
     let obstaclePosition = GAME_CONTAINER_WIDTH; 
+    
+    // Hızlandırmayı her engelde değil, tek bir döngüde yapmalıyız
+    const moveStep = 10; // Her adımda 10 birim kaydır
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
-    obstacleIntervals.push(obstacleInterval); // Döngüyü diziye kaydet
+    obstacleIntervals.push(obstacleInterval); 
     
     function moveObstacle() {
         if (!isGameRunning) {
@@ -93,12 +104,10 @@ function createObstacle() {
             return;
         }
 
-        obstaclePosition -= 10; 
+        obstaclePosition -= moveStep; 
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
-
-        // 3. Çarpışma Kontrolü (Aynı, doğru mantık korunuyor)
-        // ----------------------------------------
+        // 3. Çarpışma Kontrolü
         const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
         const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
@@ -121,30 +130,35 @@ function createObstacle() {
     }
 }
 
-// 4. Oyun Bitti Fonksiyonu (YENİ: Tekrar Başlatma mesajı)
+// 4. Oyun Bitti Fonksiyonu
 function gameOver() {
     isGameOver = true;
     isGameRunning = false;
     
-    // Tüm engel döngülerini durdur
     obstacleIntervals.forEach(clearInterval);
+    clearTimeout(obstacleGenerationTimeout);
     
     gameContainer.style.borderBottom = '3px solid red';
-    gameContainer.classList.remove('is-running'); // Başlangıç ekranını göster
+    
+    // is-running sınıfını kaldırmak, style.css'teki kural sayesinde #start-screen'i tekrar gösterir
+    gameContainer.classList.remove('is-running'); 
     
     messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun/Space.`;
     
-    // Ekranı göster
-    startScreen.style.display = 'flex';
+    // Tekrar Başlatma Bug'ı Çözümü: 
+    // gameOver çağrıldığında mesaj gösterilir. Başlatma/zıplama işlevi artık handleInput() ile yönetiliyor.
 }
 
 // 5. Puan Güncelleme
 function updateScore() {
-    score++;
+    score += 10; // DÜZELTİLDİ: Puan 10 10 artsın
     scoreDisplay.innerHTML = `Puan: ${score}`;
-    if (score % 5 === 0 && gameSpeed > 5) {
-        // Hızlanma, setInterval'ı etkilemez. Sadece yeni engelleri etkiler.
-        gameSpeed -= 1; 
+    
+    // Her 10 puanda bir (yani her engel geçildiğinde) hızı biraz artır.
+    // Ancak interval değişkenleri sabit olduğu için, hız artışını şu an sadece 
+    // bir sonraki engel döngüsünü etkileyecek şekilde ayarlıyoruz.
+    if (score % 50 === 0 && gameSpeed > 10) { // Her 50 puanda bir hız artışı
+        gameSpeed -= 2; 
     }
 }
 
@@ -154,16 +168,17 @@ function generateObstacles() {
     createObstacle();
     
     if (isGameRunning) {
-        setTimeout(generateObstacles, randomTime);
+        // Timeout'u değişkene kaydet
+        obstacleGenerationTimeout = setTimeout(generateObstacles, randomTime);
     }
 }
 
-// YENİ: Klavye ve Mobil Giriş Yönetimi
+// Klavye ve Mobil Giriş Yönetimi
 function handleInput() {
     if (!isGameRunning && isGameOver) {
-        startGame(); // Oyun bittiyse veya başlamadıysa başlat
+        startGame(); 
     } else if (isGameRunning) {
-        jump(); // Oyun çalışıyorsa zıpla
+        jump(); 
     }
 }
 
