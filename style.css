@@ -1,12 +1,11 @@
 body {
-    background-color: #f0f0f0; /* Açık gri arka plan */
+    background-color: #f0f0f0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
     font-family: Arial, sans-serif;
-    /* Görseli pikselleştirmek için */
     image-rendering: pixelated; 
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
@@ -15,35 +14,40 @@ body {
 #game-container {
     width: 600px;
     height: 150px;
-    border-bottom: 3px solid #663300; /* Kahverengi zemin çizgisi */
-    background-color: #a0a0a0; /* Harita zemin rengi */
+    border-bottom: 3px solid #663300;
+    background-color: #a0a0a0;
     position: relative;
     overflow: hidden;
 }
 
-/* Barbar'ın pikselleştirilmiş ve Barbar Rengi */
+/* GÜNCEL KOD: Barbar artık resim kullanıyor */
 #barbarian {
-    width: 20px;
-    height: 30px;
-    /* Barbar'ın saçını temsil eden sarı/turuncu */
-    background: linear-gradient(to top, #FFD700 70%, #FF8C00 70%); 
+    width: 32px; /* Resme uyacak şekilde boyut büyütüldü */
+    height: 32px;
+    /* Gerekçe: Arka plan resmi olarak barbarian.png dosyasını kullan */
+    background-image: url('barbarian.png');
+    background-size: cover; /* Resmin kutuya sığmasını sağlar */
+    background-color: transparent; /* Eskiden kullandığımız sarı rengi kaldır */
+    border: none; /* Eskiden kullandığımız piksel kenarlığı kaldır */
     position: absolute;
     bottom: 0;
-    left: 50px; /* Barbar sabit duruyor */
-    transition: bottom 0.15s ease-out; /* Zıplamayı yumuşak göstermek için */
-    border: 1px solid black; 
+    left: 50px;
+    transition: bottom 0.15s ease-out;
 }
 
-/* Engel görünümü (Top) */
+/* GÜNCEL KOD: Engel (Top) artık resim kullanıyor */
 .obstacle {
-    width: 15px;
-    height: 25px;
-    background-color: #4B0082; /* Koyu mor (Clash savunma rengi) */
+    width: 30px; /* Resme uyacak şekilde boyut büyütüldü */
+    height: 30px;
+    /* Gerekçe: cannon.png dosyasını kullan */
+    background-image: url('cannon.png');
+    background-size: cover;
+    background-color: transparent;
+    border: none;
     position: absolute;
     bottom: 0;
-    /* Engelin soldan sağa hareket edebilmesi için 'left' kullanacağız */
-    left: -15px; 
-    border: 1px solid black;
+    right: -30px; /* Yeni boyuta göre başlangıç konumunu ayarla */
+    left: auto; 
 }
 
 #score {
@@ -52,5 +56,5 @@ body {
     right: 10px;
     color: black; 
     font-weight: bold;
-    z-index: 10; /* Engellerin üstünde kalmasını sağlar */
+    z-index: 10;
 }
