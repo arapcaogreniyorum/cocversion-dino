@@ -8,30 +8,33 @@ let isGameOver = false;
 let score = 0;
 let gameSpeed = 20; 
 
-// Barbar'ın yeni boyutları
-const BARBARIAN_WIDTH = 32;
-const BARBARIAN_HEIGHT = 32;
+// Barbar'ın YENİ boyutları
+const BARBARIAN_WIDTH = 30; // GÜNCELLENDİ
+const BARBARIAN_HEIGHT = 30; // GÜNCELLENDİ
 
-// Engel'in yeni boyutları
-const OBSTACLE_WIDTH = 30;
-const OBSTACLE_HEIGHT = 30;
+// Engel'in YENİ boyutları
+const OBSTACLE_WIDTH = 28; // GÜNCELLENDİ
+const OBSTACLE_HEIGHT = 28; // GÜNCELLENDİ
 
-// Zıplama Parametreleri
+// Zıplama ve Konum Parametreleri (Aynı kaldı)
 const JUMP_HEIGHT = '80px';
 const JUMP_DURATION_MS = 150; 
 const FALL_DURATION_MS = 150; 
 const BARBARIAN_LEFT_POSITION = 50;
-const GAME_CONTAINER_WIDTH = 600; // Oyun alanının genişliği (style.css'ten alınmıştır)
+const GAME_CONTAINER_WIDTH = 600; 
 
 
 // --- FONKSİYONLAR ---
 
-// 1. Zıplama Mantığı
+// 1. Zıplama Mantığı (Animasyon Sınıfı Eklendi)
 function jump() {
     if (isJumping || isGameOver) return;
     
     isJumping = true;
     
+    // Zıplarken animasyonu durdur
+    barbarian.classList.add('is-jumping'); 
+
     barbarian.style.bottom = JUMP_HEIGHT; 
 
     setTimeout(() => {
@@ -39,6 +42,9 @@ function jump() {
         
         setTimeout(() => {
             isJumping = false;
+            // Zıplama bittiğinde animasyonu devam ettir
+            barbarian.classList.remove('is-jumping'); 
+            
         }, FALL_DURATION_MS); 
 
     }, JUMP_DURATION_MS); 
@@ -52,7 +58,7 @@ function createObstacle() {
     obstacle.classList.add('obstacle');
     gameContainer.appendChild(obstacle);
 
-    // Başlangıç Konumu: Oyun alanının en sağı (600px genişlik varsayımı)
+    // Başlangıç Konumu: Oyun alanının en sağı
     let obstaclePosition = GAME_CONTAINER_WIDTH; 
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     
@@ -63,23 +69,22 @@ function createObstacle() {
             return;
         }
 
-        obstaclePosition -= 10; // 10 birim sola hareket ettir.
+        obstaclePosition -= 10; 
         // CSS 'right' özelliğini ayarlıyoruz
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
 
-        // 3. Çarpışma Kontrolü (GÜNCELLENMİŞ MANTIK)
+        // 3. Çarpışma Kontrolü (GÜNCELLENMİŞ BOYUTLARLA)
         // ----------------------------------------
 
         // Engelin Sol Pozisyonunu Hesaplama (Oyun alanının Sol kenarından uzaklığı)
-        // gameContainerWidth - (CSS right değeri) - OBSTACLE_WIDTH
         const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
         const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
 
         // Barbar'ın zeminden yüksekliği
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
 
-        // X Ekseni Çakışması (Sol Pozisyonları Kullanarak):
+        // X Ekseni Çakışması: 
         // Barbar'ın sağ kenarı Engelin sol kenarını geçmiş VE
         // Barbar'ın sol kenarı Engelin sağ kenarını geçmemiş olmalı.
         const x_collision = (BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH > obstacleLeftPosition && 
@@ -94,7 +99,7 @@ function createObstacle() {
             clearInterval(obstacleInterval);
             gameOver();
         } 
-        // Engel Başarıyla Geçildi (Ekranın sol kenarının dışına çıktı)
+        // Engel Başarıyla Geçildi
         else if (obstaclePosition < -OBSTACLE_WIDTH) { 
             clearInterval(obstacleInterval);
             obstacle.remove();
@@ -107,7 +112,6 @@ function createObstacle() {
 function gameOver() {
     isGameOver = true;
     gameContainer.style.borderBottom = '3px solid red';
-    // Artık resim kullandığımız için Barbar'ı kırmızı yapmak yerine sadece durduruyoruz.
     alert(`Oyun Bitti! Barbar'ın Puanı: ${score}`);
 }
 
@@ -116,13 +120,13 @@ function updateScore() {
     score++;
     scoreDisplay.innerHTML = `Puan: ${score}`;
     if (score % 5 === 0 && gameSpeed > 5) {
-        gameSpeed -= 1; // Her 5 puanda bir oyunu hızlandır
+        gameSpeed -= 1; // Oyunu hızlandır
     }
 }
 
 // 6. Engel Döngüsünü Başlatma
 function generateObstacles() {
-    let randomTime = Math.random() * 2000 + 1000; // 1 ile 3 saniye arasında rastgele bekleme
+    let randomTime = Math.random() * 2000 + 1000; 
     createObstacle();
     
     if (!isGameOver) {
