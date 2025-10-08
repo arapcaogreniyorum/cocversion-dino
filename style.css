@@ -1,107 +1,33 @@
-body {
-    background-color: #f0f0f0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    image-rendering: pixelated; 
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
+/* style.css */
+
+/* YENİ: Arka Plan Animasyonu Tanımı */
+@keyframes scrollBackground {
+    /* Başlangıçta 0'da başlar. */
+    from { background-position: 0 0; }
+    /* Oyun alanının genişliği kadar sola kaydırır (-600px). */
+    to { background-position: -600px 0; }
 }
 
 #game-container {
     width: 600px;
     height: 150px;
     border-bottom: 3px solid #663300;
-    background-image: url('clash-runner/background.png'); 
-    background-size: cover;
+    
+    /* YENİ ZEMİN/ARKA PLAN AYARI */
+    background-image: url('clash-runner/ground_scroll.png'); /* Yeni dosya adı */
+    background-size: auto 100%; /* Resmin dikey olarak container'ı kaplamasını sağlar */
+    background-repeat: repeat-x; /* Yatayda tekrarla */
     background-color: #a0a0a0; 
     position: relative;
     overflow: hidden;
+
+    /* YENİ: Oyun başladığında animasyonu çalıştırır */
+    animation: scrollBackground 3s linear infinite paused; /* 3 saniye linear sonsuz döngü, başlangıçta durduruldu */
 }
 
-/* --- BARBAR ANIMASYON VE BOYUT --- */
-@keyframes run {
-    to { background-position: -90px 0; }
+/* YENİ: Oyun çalıştığında arka plan animasyonunu başlat */
+.is-running {
+    animation-play-state: running !important;
 }
 
-#barbarian {
-    width: 30px; 
-    height: 30px; 
-    
-    /* GÖZÜKME İÇİN ÖNEMLİ: Resim yolu doğru olmalı */
-    background-image: url('clash-runner/barbarian_run.png'); 
-    background-size: 120px 30px; 
-    
-    background-color: transparent; 
-    border: none; 
-    position: absolute;
-    bottom: 0;
-    left: 50px;
-    transition: bottom 0.15s ease-out;
-    
-    /* Başlangıçta animasyon durdurulur (is-running sınıfı başlatır) */
-    animation: run 0.6s steps(4) infinite paused; 
-}
-
-/* YENİ: Oyun başladığında animasyonu çalıştırır */
-.is-running #barbarian {
-    animation-play-state: running;
-}
-
-/* Zıplama anında animasyonu durdurmak için */
-.is-jumping {
-    animation-play-state: paused !important;
-    background-position: 0 0; 
-}
-
-/* --- ENGEL BOYUTU --- */
-.obstacle {
-    width: 28px; 
-    height: 28px; 
-    
-    background-image: url('clash-runner/cannon.png');
-    background-size: cover;
-    background-color: transparent;
-    border: none;
-    position: absolute;
-    bottom: 0;
-    right: -28px; 
-    left: auto; 
-}
-
-#score {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: black; 
-    font-weight: bold;
-    z-index: 10;
-}
-
-/* --- YENİ: BAŞLANGIÇ/BİTİŞ EKRANI STİLİ --- */
-#start-screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    z-index: 20;
-    cursor: pointer;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* Oyun başladığında ekranı gizler */
-.is-running #start-screen {
-    display: none;
-}
+/* ... (Diğer stiller aynı kalır) ... */
