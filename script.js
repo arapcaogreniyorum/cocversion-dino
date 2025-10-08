@@ -1,34 +1,42 @@
 const barbarian = document.getElementById('barbarian');
 const gameContainer = document.getElementById('game-container');
 let isJumping = false;
+// Zıplama yüksekliği ve süresini ayarlayabilirsin
+const JUMP_HEIGHT = '80px';
+const JUMP_DURATION_MS = 150; 
+const FALL_DURATION_MS = 150; 
 
-// Kapsamlı Dokümantasyon: Bu fonksiyon, karakterin zıplamasını yönetir.
+
 function jump() {
-    // Gerekçe: Eğer karakter zaten zıplıyorsa, tekrar zıplamasını engellemek için.
     if (isJumping) return;
     
     isJumping = true;
     
-    // Zıplama Animasyonu: Barbar'ın bottom CSS özelliğini değiştiriyoruz.
-    // 1. Yukarı Zıpla
-    barbarian.style.bottom = '80px'; 
+    // Barbar'ı yukarı hareket ettir.
+    barbarian.style.bottom = JUMP_HEIGHT; 
 
-    // 2. Aşağı İn (Kısa bir gecikmeden sonra)
-    // Tercih Gerekçesi: setTimeout, belirli bir süre sonra bir kodu çalıştırmamızı sağlar.
+    // Kısa bir gecikmeden sonra (Havada Kalma) Barbar'ı aşağı indir.
     setTimeout(() => {
         barbarian.style.bottom = '0px'; 
         
-        // Gecikmeden sonra zıplama bitti olarak işaretlenir.
+        // Yere indiğinde isJumping durumunu sıfırla.
         setTimeout(() => {
             isJumping = false;
-        }, 200); // 200ms sonra (CSS transition süresi kadar) isJumping sıfırlanır.
+        }, FALL_DURATION_MS); 
 
-    }, 500); // 500ms havada kalma süresi
-
+    }, JUMP_DURATION_MS); 
 }
 
-// Kodun Uygulanması: Klavyeden herhangi bir tuşa basıldığında zıplama fonksiyonunu çağırırız.
-document.addEventListener('keydown', jump);
+// 1. Klavye Desteği: Sadece Space tuşunu dinler.
+document.addEventListener('keydown', (event) => {
+    // Gerekçe: event.code === 'Space' sadece Space (Boşluk) tuşunu algılar.
+    if (event.code === 'Space') {
+        jump();
+        event.preventDefault(); // Sayfanın kaymasını engeller.
+    }
+});
 
-
-// NOT: Çarpışma ve Engel oluşturma mantığı bir sonraki adımımız olacaktır!
+// 2. Mobil Dokunma Desteği: Ekranın herhangi bir yerine dokunulduğunda zıplar.
+// 'click' olayını kullanmak, hem fare tıklaması hem de dokunmayı kapsar.
+gameContainer.addEventListener('click', jump);
+gameContainer.addEventListener('touchstart', jump); 
