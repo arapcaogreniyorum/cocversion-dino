@@ -2,38 +2,39 @@
 const barbarian = document.getElementById('barbarian');
 const gameContainer = document.getElementById('game-container');
 const scoreDisplay = document.getElementById('score');
-const startScreen = document.getElementById('start-screen');
-const messageDisplay = document.getElementById('message');
+const startScreen = document.getElementById('start-screen'); // Başlangıç/Bitiş ekranı elementi
 
 let isJumping = false;
 let isGameOver = true; 
 let isGameRunning = false; 
 let score = 0;
-// HIZ DÜZELTİLDİ: 50 ideal bir başlangıç hızıdır. Daha büyük değer daha yavaş demektir.
+// HIZ DÜZELTİLDİ: Stabil başlangıç hızı
 let gameSpeed = 50; 
 let obstacleIntervals = []; 
 let obstacleGenerationTimeout; 
 
-// Barbar'ın boyutları (30x30)
+// Barbar'ın boyutları (30x30'u koruyoruz)
 const BARBARIAN_WIDTH = 30;
 const BARBARIAN_HEIGHT = 30;
 
-// Engel'in boyutları (28x28)
+// Engel'in boyutları (28x28'i koruyoruz)
 const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '80px';
-const JUMP_DURATION_MS = 120; // Yükselme süresi
-const FALL_DURATION_MS = 120; // Düşme süresi
+const JUMP_DURATION_MS = 120; 
+const FALL_DURATION_MS = 120; 
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 600; 
+// ZEMİN KONUMU: Barbar'ın bottom 0px'deyken zeminin yüksekliği (bu genellikle 0'dır, ancak CSS'ten emin olmak için)
+const GROUND_POSITION_PX = 0; 
 
 
 // --- FONKSİYONLAR ---
 
 function startGame() {
-    // Tüm döngüleri ve zamanlayıcıları temizle
+    // Önceki döngüleri ve zamanlayıcıları temizle
     obstacleIntervals.forEach(clearInterval);
     obstacleIntervals = []; 
     clearTimeout(obstacleGenerationTimeout);
@@ -47,7 +48,7 @@ function startGame() {
     gameSpeed = 50; // Hızı sıfırla
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
-    barbarian.style.bottom = '0px'; 
+    barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
     
     // Barbar'ın yanma sınıfını kaldır
     barbarian.classList.remove('barbarian-burned');
@@ -72,7 +73,7 @@ function jump() {
     // DÜŞME
     setTimeout(() => {
         barbarian.style.transition = `bottom ${FALL_DURATION_MS}ms ease-in`; 
-        barbarian.style.bottom = '0px'; 
+        barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
         
         setTimeout(() => {
             isJumping = false;
@@ -93,9 +94,8 @@ function createObstacle() {
     gameContainer.appendChild(obstacle);
 
     let obstaclePosition = GAME_CONTAINER_WIDTH; 
-    const moveStep = 10; // Engelin her adımda hareket ettiği miktar
+    const moveStep = 10; 
     
-    // **ÖNEMLİ DÜZELTME:** Her engel için yeni interval, güncel hız ile başlar
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     obstacleIntervals.push(obstacleInterval); 
     
@@ -106,39 +106,39 @@ function createObstacle() {
         }
         
         obstaclePosition -= moveStep; 
-        // Engelin pozisyonunu right CSS özelliği ile ayarlar
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
 
-        // 3. Çarpışma Kontrolü (KESİN VE DOĞRU ÇARPIŞMA MANTIĞI)
+        // 3. Çarpışma Kontrolü (KESİN ÇÖZÜM)
         // ----------------------------------------
         
-        // Engelin Sol Pozisyonunu Hesaplama (X-ekseni kontrolü için)
+        // Engelin Sol Pozisyonunu Hesaplama
         const cssRightValue = GAME_CONTAINER_WIDTH - obstaclePosition;
         const obstacleLeftPosition = GAME_CONTAINER_WIDTH - cssRightValue - OBSTACLE_WIDTH;
 
-        // Barbar'ın zeminden yüksekliği (Y-ekseni kontrolü için)
+        // Barbar'ın zeminden yüksekliği (Bu değer anlık olarak okunmalıdır)
         const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
 
         // X Ekseni Çakışması: Yatayda kesişim var mı?
         const x_collision = (BARBARIAN_LEFT_POSITION + BARBARIAN_WIDTH > obstacleLeftPosition && 
                             BARBARIAN_LEFT_POSITION < obstacleLeftPosition + OBSTACLE_WIDTH);
 
-        // Y Ekseni Çakışması: Barbar'ın ayağı engelin yüksekliğinden küçük mü? (Yerde/engel hizasında mı?)
-        // Bu, zıplama ile çarpışma arasındaki farkı belirleyen kritik kuraldır.
+        // Y Ekseni Çakışması: Barbar'ın tabanı engelin yüksekliğinden küçük MÜ?
+        // NOT: Normalde Barbar'ın tabanı 0'dır, Engel yüksekliği 28'dir. 
+        // Çarpışma: Barbar'ın tabanı (barbarianBottom) ile Engelin üstü (OBSTACLE_HEIGHT) arasındaki boşlukta olmalı.
         const y_collision = (barbarianBottom < OBSTACLE_HEIGHT);
 
-        // ÇARPIŞMA! (Yatayda kesişim VAR ve Dikeyde YETERİNCE YÜKSEK DEĞİL)
+
+        // ÇARPIŞMA!
         if (x_collision && y_collision) {
             clearInterval(obstacleInterval);
             gameOver();
         } 
-        // Engel Başarıyla Geçildi (Puan Sistemi Düzeltmesi)
+        // Engel Başarıyla Geçildi (Puan Sistemi ve Engel Silme)
         else if (obstaclePosition < -OBSTACLE_WIDTH) { 
-            // Engel, oyun alanının sol kenarının dışına çıktığında
             clearInterval(obstacleInterval);
             obstacle.remove();
-            updateScore(); // Puanı güncelle
+            updateScore(); 
         }
     }
 }
@@ -185,13 +185,16 @@ function generateObstacles() {
 }
 
 // Klavye ve Mobil Giriş Yönetimi
-function handleInput() {
-    // Başlatma ve Tekrar Başlatma
+function handleInput(event) {
+    // Tekrar başlatma, sadece start/game over ekranına dokunulduğunda çalışır
     if (!isGameRunning && isGameOver) {
+        // Bu fonksiyon, sadece startScreen event listener'ları tarafından çağrılmalıdır.
         startGame(); 
+        return; 
     } 
-    // Zıplama
-    else if (isGameRunning) {
+    
+    // Zıplama: Oyun çalışıyorsa ve klavye/dokunma olayı ise zıpla
+    if (isGameRunning) {
         jump(); 
     }
 }
@@ -199,15 +202,47 @@ function handleInput() {
 
 // --- KODUN UYGULANMASI ---
 
+// Zıplama/Başlatma Olay Dinleyicileri
+
+// 1. KLAVYE (Space tuşu)
 document.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
-        handleInput();
+        // Klavye ile hem başlatma hem zıplama
+        if (!isGameRunning && isGameOver) {
+            startGame();
+        } else if (isGameRunning) {
+            jump();
+        }
         event.preventDefault(); 
     }
 });
 
-startScreen.addEventListener('click', handleInput);
-startScreen.addEventListener('touchstart', handleInput);
+// 2. MOBİL/EKRAN (Her yere dokunma - SADECE ZIPLAMA İÇİN)
+// NOT: Bu dinleyici, "startScreen" dışındaki her yerde zıplamayı sağlar.
+document.addEventListener('click', (event) => {
+    // Tıklanan element startScreen ise, handleInput'un başlatma kısmını engellemek için geri dönüyoruz.
+    if (!isGameRunning && isGameOver) {
+        // Eğer oyun bitmişse, başlatma işini sadece alttaki event listener'lara bırakıyoruz.
+        return;
+    }
+    
+    // Oyun çalışıyorsa, nereye tıklanırsa tıklansın zıpla
+    if (isGameRunning) {
+        jump();
+    }
+});
 
-gameContainer.addEventListener('click', handleInput); 
-gameContainer.addEventListener('touchstart', handleInput);
+document.addEventListener('touchstart', (event) => {
+    if (!isGameRunning && isGameOver) {
+        return;
+    }
+    if (isGameRunning) {
+        jump();
+    }
+});
+
+
+// 3. TEKRAR BAŞLATMA (Sadece startScreen üzerine tıklama/dokunma)
+// NOT: Bu dinleyici sadece start/game over ekranı üzerindeyken çalışır.
+startScreen.addEventListener('click', startGame);
+startScreen.addEventListener('touchstart', startGame);
