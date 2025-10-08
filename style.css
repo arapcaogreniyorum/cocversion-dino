@@ -15,24 +15,26 @@ body {
     width: 600px;
     height: 150px;
     border-bottom: 3px solid #663300;
-    background-color: #a0a0a0;
+    /* BACKGROUND.PNG KULLANILIYOR */
+    background-image: url('clash-runner/background.png'); 
+    background-size: cover;
+    background-color: #a0a0a0; 
     position: relative;
     overflow: hidden;
 }
 
 /* --- BARBAR ANIMASYON VE BOYUT --- */
 @keyframes run {
-    /* 4 kareden oluşan bir sprite sheet'i kaydırıyoruz. */
     to { background-position: -90px 0; }
 }
 
 #barbarian {
-    width: 30px; /* YENİ BOYUT: 30px */
-    height: 30px; /* YENİ BOYUT: 30px */
+    width: 30px; 
+    height: 30px; 
     
-    /* Koşma animasyonu sprite sheet'i kullanılıyor */
-    background-image: url('barbarian_run.png'); 
-    background-size: 120px 30px; /* 4 kare * 30px genişlik = 120px */
+    /* RESİM YOLU DÜZELTİLDİ */
+    background-image: url('clash-runner/barbarian_run.png'); 
+    background-size: 120px 30px; 
     
     background-color: transparent; 
     border: none; 
@@ -41,7 +43,6 @@ body {
     left: 50px;
     transition: bottom 0.15s ease-out;
     
-    /* KOŞMA ANİMASYONU BAŞLAT */
     animation: run 0.6s steps(4) infinite; 
 }
 
@@ -53,16 +54,16 @@ body {
 
 /* --- ENGEL BOYUTU --- */
 .obstacle {
-    width: 28px; /* YENİ BOYUT: 28px */
-    height: 28px; /* YENİ BOYUT: 28px */
+    width: 28px; /* 28px */
+    height: 28px; /* 28px */
     
-    background-image: url('cannon.png');
+    /* RESİM YOLU DÜZELTİLDİ */
+    background-image: url('clash-runner/cannon.png');
     background-size: cover;
     background-color: transparent;
     border: none;
     position: absolute;
     bottom: 0;
-    /* Yeni boyuta göre başlangıç konumunu ayarla */
     right: -28px; 
     left: auto; 
 }
