@@ -1,10 +1,20 @@
-/* style.css */
+body {
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    image-rendering: pixelated; 
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
 
 /* YENİ: Arka Plan Animasyonu Tanımı */
 @keyframes scrollBackground {
-    /* Başlangıçta 0'da başlar. */
-    from { background-position: 0 0; }
     /* Oyun alanının genişliği kadar sola kaydırır (-600px). */
+    from { background-position: 0 0; }
     to { background-position: -600px 0; }
 }
 
@@ -13,21 +23,104 @@
     height: 150px;
     border-bottom: 3px solid #663300;
     
-    /* YENİ ZEMİN/ARKA PLAN AYARI */
-    background-image: url('clash-runner/ground_scroll.png'); /* Yeni dosya adı */
-    background-size: auto 100%; /* Resmin dikey olarak container'ı kaplamasını sağlar */
-    background-repeat: repeat-x; /* Yatayda tekrarla */
+    /* ZEMİN/ARKA PLAN AYARI VE YOL DÜZELTİLDİ */
+    background-image: url('clash-runner/ground_scroll.png'); 
+    background-size: auto 100%; 
+    background-repeat: repeat-x; 
     background-color: #a0a0a0; 
     position: relative;
     overflow: hidden;
 
-    /* YENİ: Oyun başladığında animasyonu çalıştırır */
-    animation: scrollBackground 3s linear infinite paused; /* 3 saniye linear sonsuz döngü, başlangıçta durduruldu */
+    /* Arka plan animasyonu: 3 saniye linear sonsuz döngü, başlangıçta durduruldu */
+    animation: scrollBackground 3s linear infinite paused; 
 }
 
-/* YENİ: Oyun çalıştığında arka plan animasyonunu başlat */
+/* YENİ: Oyun çalıştığında arka plan animasyonunu başlatır */
 .is-running {
     animation-play-state: running !important;
 }
 
-/* ... (Diğer stiller aynı kalır) ... */
+/* --- BARBAR ANIMASYON VE BOYUT (30x30) --- */
+@keyframes run {
+    to { background-position: -90px 0; } /* 4 kare * 30px = 120px, 3 karenin kayması: 90px */
+}
+
+#barbarian {
+    width: 30px; 
+    height: 30px; 
+    
+    /* RESİM YOLU DÜZELTİLDİ */
+    background-image: url('clash-runner/barbarian_run.png'); 
+    background-size: 120px 30px; 
+    
+    background-color: transparent; 
+    border: none; 
+    position: absolute;
+    bottom: 0;
+    left: 50px;
+    transition: bottom 0.15s ease-out; /* Varsayılan geçiş */
+    
+    /* Animasyon başlangıçta durdurulur */
+    animation: run 0.6s steps(4) infinite paused; 
+}
+
+/* YENİ: Oyun başladığında animasyonu çalıştırır */
+.is-running #barbarian {
+    animation-play-state: running;
+}
+
+/* Zıplama anında animasyonu durdurmak için */
+.is-jumping {
+    animation-play-state: paused !important;
+    background-position: 0 0; 
+}
+
+/* --- ENGEL BOYUTU (28x28) --- */
+.obstacle {
+    width: 28px; 
+    height: 28px; 
+    
+    /* RESİM YOLU DÜZELTİLDİ */
+    background-image: url('clash-runner/cannon.png');
+    background-size: cover;
+    background-color: transparent;
+    border: none;
+    position: absolute;
+    bottom: 0;
+    right: -28px; 
+    left: auto; 
+}
+
+#score {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: black; 
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* --- BAŞLANGIÇ/BİTİŞ EKRANI STİLİ --- */
+#start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 20;
+    cursor: pointer;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Oyun başladığında ekranı gizler */
+.is-running #start-screen {
+    display: none;
+}
