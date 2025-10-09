@@ -49,8 +49,8 @@ body {
     position: absolute;
     bottom: 0;
     left: 50px;
-    /* GÜNCELLENDİ: Zıplama animasyonunu hızlandırdık (0.1s yerine 0.05s) */
-    transition: bottom 0.05s ease-out; 
+    /* Zıplama geçişleri artık JS içinde dinamik olarak ayarlanıyor */
+    transition: bottom 0.1s ease-out; 
     
     animation: none;
 }
