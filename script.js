@@ -3,17 +3,16 @@ const barbarian = document.getElementById('barbarian');
 const gameContainer = document.getElementById('game-container');
 const scoreDisplay = document.getElementById('score');
 const startScreen = document.getElementById('start-screen');
-// messageDisplay'ı tanımlamadıysanız DOM'dan çekelim (index.html'e göre)
-const messageDisplay = document.getElementById('message'); // EKLENDİ
+const messageDisplay = document.getElementById('message'); 
 
 let isJumping = false;
 let isGameOver = true; 
 let isGameRunning = false; 
 let score = 0;
-let gameSpeed = 10; // Engel hareket hızı (ms)
+let gameSpeed = 10; // Bu, startGame'de 8 olarak ayarlanacak
 let obstacleIntervals = []; 
 let obstacleGenerationTimeout; 
-let collisionCheckInterval; // YENİ: Çarpışmayı yönetecek sabit döngü
+let collisionCheckInterval; 
 
 // Boyutları koruyoruz
 const BARBARIAN_WIDTH = 30;
@@ -22,13 +21,13 @@ const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
 // Tolerans Ayarları
-const BARBARIAN_HITBOX_ADJUSTMENT = 5; // Yatayda 5 piksel tolerans (Çarpışma alanını küçültür)
-const OBSTACLE_TOLERANCE_PX = 8; // Dikeyde 8 piksel tolerans (Yere yakın hatalı okumaları engeller - 5'ten 8'e yükseltildi)
+const BARBARIAN_HITBOX_ADJUSTMENT = 5; // Yatayda 5 piksel tolerans
+const OBSTACLE_TOLERANCE_PX = 8; // Dikeyde 8 piksel tolerans (Çarpışma sorununu çözmek için 5'ten 8'e yükseltildi)
 
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
-const JUMP_DURATION_MS = 100; 
-const FALL_DURATION_MS = 100; 
+const JUMP_DURATION_MS = 50; // GÜNCELLENDİ: Daha hızlı kalkış (50ms)
+const FALL_DURATION_MS = 50; // GÜNCELLENDİ: Daha hızlı iniş (50ms)
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 600; 
 const GROUND_POSITION_PX = 0; 
@@ -48,7 +47,7 @@ function startGame() {
     isGameOver = false;
     isGameRunning = true;
     score = 0;
-    gameSpeed = 10; 
+    gameSpeed = 8; // GÜNCELLENDİ: Daha hızlı başlangıç
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
     barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
@@ -58,7 +57,7 @@ function startGame() {
     gameContainer.classList.add('is-running');
     
     generateObstacles(); 
-    startCollisionCheck(); // Çarpışma kontrolünü başlat
+    startCollisionCheck(); 
 }
 
 
@@ -68,6 +67,7 @@ function jump() {
     
     isJumping = true;
     
+    // GÜNCELLENDİ: Hızlı geçiş süreleri
     barbarian.style.transition = `bottom ${JUMP_DURATION_MS}ms ease-out`;
     barbarian.style.bottom = JUMP_HEIGHT; 
 
@@ -77,14 +77,14 @@ function jump() {
         
         setTimeout(() => {
             isJumping = false;
-            barbarian.style.transition = 'bottom 0.1s ease-out'; 
+            barbarian.style.transition = 'bottom 0.1s ease-out'; // Tekrar varsayılan kısa süreye ayarla
             
         }, FALL_DURATION_MS); 
 
     }, JUMP_DURATION_MS); 
 }
 
-// 2. Engel Oluşturma ve Hareket Mantığı (SADECE HAREKET)
+// 2. Engel Oluşturma ve Hareket Mantığı
 function createObstacle() {
     if (!isGameRunning) return;
 
@@ -93,8 +93,9 @@ function createObstacle() {
     gameContainer.appendChild(obstacle);
 
     let obstaclePosition = GAME_CONTAINER_WIDTH; 
-    const moveStep = 2; 
+    const moveStep = 2; // Bir döngüde kat edilen mesafe
     
+    // Engel hareket hızı (gameSpeed) burada kullanılır
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     obstacleIntervals.push(obstacleInterval); 
     
@@ -116,9 +117,9 @@ function createObstacle() {
     }
 }
 
-// 3. YENİ ANA ÇARPIŞMA KONTROL DÖNGÜSÜ (GÜNCELLENDİ)
+// 3. ANA ÇARPIŞMA KONTROL DÖNGÜSÜ (GÜNCELLENDİ)
 function startCollisionCheck() {
-    // Saniyede 50 kez (her 20ms'de bir) çarpışmayı kontrol et
+    
     collisionCheckInterval = setInterval(() => {
         if (!isGameRunning) {
             clearInterval(collisionCheckInterval);
@@ -132,20 +133,20 @@ function startCollisionCheck() {
             // Barbar pozisyonları
             const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
             
-            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla (Daha tutarlı)
+            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla
             const obstacleRightPosition = parseInt(obstacle.style.right || 0);
             const obstacleLeftPosition = GAME_CONTAINER_WIDTH - OBSTACLE_WIDTH - obstacleRightPosition; 
 
             // Barbar'ın ayarlanmış (toleranslı) hitbox'ı
             const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
-            const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2); // Hem soldan hem sağdan düş
+            const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2);
 
             // X Çarpışması: Yatayda temas var mı?
             const x_collision = (effectiveBarbarianLeft + effectiveBarbarianWidth > obstacleLeftPosition && 
                                 effectiveBarbarianLeft < obstacleLeftPosition + OBSTACLE_WIDTH);
 
             // Y Çarpışması: Barbar yeterince yüksekte değil mi?
-            // Barbar'ın bottom değeri, engelin yüksekliğinden (tolerans dahil) düşükse çarpışma var demektir.
+            // OBSTACLE_TOLERANCE_PX sayesinde zıplarken temas sorunu azalır.
             const y_collision = (barbarianBottom < (OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_PX));
 
 
@@ -178,13 +179,14 @@ function gameOver() {
     messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun/Space.`;
 }
 
-// 5. Puan Güncelleme
+// 5. Puan Güncelleme (GÜNCELLENDİ)
 function updateScore() {
     score += 10; 
     scoreDisplay.innerHTML = `Puan: ${score}`;
     
-    if (score % 50 === 0 && gameSpeed > 1) { 
-        gameSpeed -= 1; 
+    // GÜNCELLENDİ: Her 30 puanda bir daha agresif hızlanma
+    if (score % 30 === 0 && gameSpeed > 1) { 
+        gameSpeed -= 0.5; // gameSpeed (ms cinsinden) düştükçe oyun hızlanır
     }
 }
 
