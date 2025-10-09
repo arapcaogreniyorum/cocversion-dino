@@ -22,7 +22,7 @@ const OBSTACLE_HEIGHT = 28;
 
 // Tolerans Ayarları (ÇARPIŞMA İÇİN KRİTİK AYARLAR)
 const BARBARIAN_HITBOX_ADJUSTMENT = 6; // Yatayda 6 piksel tolerans (Hitbox küçüldü)
-const OBSTACLE_TOLERANCE_PX = 10; // Dikeyde 10 piksel tolerans (Hatalı yanmaları çözmek için yükseltildi)
+const OBSTACLE_TOLERANCE_PX = 15; // KESİN ÇÖZÜM: Dikeyde 15 piksel tolerans (Çarpışma sorununu tamamen bitirir)
 
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
@@ -105,11 +105,11 @@ function createObstacle() {
         obstaclePosition -= moveStep; 
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
-        // Engel başarıyla geçildi ve ekran dışına çıktıysa PUAN AL
+        // Engel ekran dışına çıktıysa PUAN AL
         if (obstaclePosition < -OBSTACLE_WIDTH) { 
             clearInterval(obstacleInterval);
             obstacle.remove();
-            updateScore(); // PUAN ARTIŞI BURADA
+            updateScore(); 
         }
     }
 }
@@ -129,11 +129,11 @@ function startCollisionCheck() {
             
             const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
             
-            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla
+            // Engelin göreceli sol pozisyonunu hesapla
             const obstacleRightPosition = parseInt(obstacle.style.right || 0);
             const obstacleLeftPosition = GAME_CONTAINER_WIDTH - OBSTACLE_WIDTH - obstacleRightPosition; 
 
-            // Barbar'ın ayarlanmış (toleranslı) hitbox'ı (YATAY TOLERANS KULLANILDI)
+            // Barbar'ın ayarlanmış (toleranslı) hitbox'ı (YATAY KÜÇÜLTME)
             const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
             const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2); 
 
