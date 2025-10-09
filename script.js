@@ -9,7 +9,7 @@ let isJumping = false;
 let isGameOver = true; 
 let isGameRunning = false; 
 let score = 0;
-let gameSpeed = 10; 
+let gameSpeed = 10; // Başlangıç hızı, startGame'de 8 olarak ayarlanacak
 let obstacleIntervals = []; 
 let obstacleGenerationTimeout; 
 let collisionCheckInterval; 
@@ -20,14 +20,14 @@ const BARBARIAN_HEIGHT = 30;
 const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
-// Tolerans Ayarları
-const BARBARIAN_HITBOX_ADJUSTMENT = 6; // GÜNCELLENDİ: Yatayda 6 piksel tolerans (Hitbox'ı daha da küçültür)
-const OBSTACLE_TOLERANCE_PX = 10; // GÜNCELLENDİ: Dikeyde 10 piksel tolerans (Hatalı yanmaları kesin çözmek için 8'den 10'a yükseltildi)
+// Tolerans Ayarları (ÇARPIŞMA İÇİN EN KRİTİK AYARLAR)
+const BARBARIAN_HITBOX_ADJUSTMENT = 6; // YENİ: Yatayda 6 piksel tolerans (Hitbox daha da küçüldü)
+const OBSTACLE_TOLERANCE_PX = 10; // YENİ: Dikeyde 10 piksel tolerans (Hatalı yanmaları kesin çözmek için 10'a yükseltildi)
 
-// Zıplama Parametreleri (Bunlar sabit kaldı)
+// Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
 const JUMP_DURATION_MS = 50;  // Hızlı kalkış
-const FALL_DURATION_MS = 150; // Yavaş iniş
+const FALL_DURATION_MS = 150; // Yavaş iniş (Havada asılı kalma hissi)
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 600; 
 const GROUND_POSITION_PX = 0; 
@@ -46,7 +46,7 @@ function startGame() {
     isGameOver = false;
     isGameRunning = true;
     score = 0;
-    gameSpeed = 8; 
+    gameSpeed = 8; // BAŞLANGIÇ HIZI (Hızlı)
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
     barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
@@ -95,6 +95,7 @@ function createObstacle() {
     let obstaclePosition = GAME_CONTAINER_WIDTH; 
     const moveStep = 2; 
     
+    // Engel hareket hızı (gameSpeed) burada kullanılır
     const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
     obstacleIntervals.push(obstacleInterval); 
     
@@ -107,15 +108,16 @@ function createObstacle() {
         obstaclePosition -= moveStep; 
         obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
 
+        // Engel başarıyla geçildi ve ekran dışına çıktıysa PUAN AL
         if (obstaclePosition < -OBSTACLE_WIDTH) { 
             clearInterval(obstacleInterval);
             obstacle.remove();
-            updateScore(); 
+            updateScore(); // PUAN ARTIŞI BURADA TETİKLENİYOR
         }
     }
 }
 
-// 3. ANA ÇARPIŞMA KONTROL DÖNGÜSÜ (EN SON DÜZENLENEN KISIM)
+// 3. ANA ÇARPIŞMA KONTROL DÖNGÜSÜ
 function startCollisionCheck() {
     
     collisionCheckInterval = setInterval(() => {
@@ -130,20 +132,19 @@ function startCollisionCheck() {
             
             const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
             
-            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla
+            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla (Çok hassas hesaplama)
             const obstacleRightPosition = parseInt(obstacle.style.right || 0);
             const obstacleLeftPosition = GAME_CONTAINER_WIDTH - OBSTACLE_WIDTH - obstacleRightPosition; 
 
-            // Barbar'ın ayarlanmış (toleranslı) hitbox'ı
+            // Barbar'ın ayarlanmış (toleranslı) hitbox'ı (YATAY KÜÇÜLTME)
             const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
-            // Hitbox'ı hem soldan hem sağdan düşerek küçült
             const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2); 
 
             // X Çarpışması: Yatayda temas var mı?
             const x_collision = (effectiveBarbarianLeft + effectiveBarbarianWidth > obstacleLeftPosition && 
                                 effectiveBarbarianLeft < obstacleLeftPosition + OBSTACLE_WIDTH);
 
-            // Y Çarpışması: Barbar yeterince yüksekte değil mi?
+            // Y Çarpışması: Barbar yeterince yüksekte değil mi? (DİKEY TOLERANS)
             const y_collision = (barbarianBottom < (OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_PX));
 
 
@@ -176,11 +177,12 @@ function gameOver() {
     messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun/Space.`;
 }
 
-// 5. Puan Güncelleme
+// 5. Puan Güncelleme (HIZLANMA MANTIĞI)
 function updateScore() {
     score += 10; 
     scoreDisplay.innerHTML = `Puan: ${score}`;
     
+    // Her 30 puanda bir daha agresif hızlanma
     if (score % 30 === 0 && gameSpeed > 1) { 
         gameSpeed -= 0.5; 
     }
