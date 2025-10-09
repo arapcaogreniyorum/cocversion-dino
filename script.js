@@ -32,7 +32,7 @@ const JUMP_DURATION_MS = 50;  // GÜNCELLENDİ: Hızlı kalkış
 const FALL_DURATION_MS = 150; // GÜNCELLENDİ: Yavaş iniş (Havada asılı kalma hissi için 150ms)
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 800; 
-const GROUND_POSITION_PX = 0; 
+const GROUND_POSITION_PX = 5; 
 
 
 // --- FONKSİYONLAR ---
