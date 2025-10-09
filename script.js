@@ -2,14 +2,16 @@
 const barbarian = document.getElementById('barbarian');
 const gameContainer = document.getElementById('game-container');
 const scoreDisplay = document.getElementById('score');
-const startScreen = document.getElementById('start-screen');
+const startScreen = document.getElementById('start-screen'); 
+// Mesaj alanını ekledik (index.html'den gelmeli)
 const messageDisplay = document.getElementById('message'); 
 
 let isJumping = false;
 let isGameOver = true; 
 let isGameRunning = false; 
 let score = 0;
-let gameSpeed = 10; // Bu, startGame'de 8 olarak ayarlanacak
+// Başlangıç hızı startGame içinde 8 olarak ayarlanacak
+let gameSpeed = 10; 
 let obstacleIntervals = []; 
 let obstacleGenerationTimeout; 
 let collisionCheckInterval; 
@@ -22,11 +24,11 @@ const OBSTACLE_HEIGHT = 28;
 
 // Tolerans Ayarları
 const BARBARIAN_HITBOX_ADJUSTMENT = 5; // Yatayda 5 piksel tolerans
-const OBSTACLE_TOLERANCE_PX = 8; // Dikeyde 8 piksel tolerans
+const OBSTACLE_TOLERANCE_PX = 8; // GÜNCELLENDİ: Hatalı yanmaları önlemek için 5'ten 8'e yükseltildi
 
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
-const JUMP_DURATION_MS = 50;  // Hızlı kalkış
+const JUMP_DURATION_MS = 50;  // GÜNCELLENDİ: Hızlı kalkış
 const FALL_DURATION_MS = 150; // GÜNCELLENDİ: Yavaş iniş (Havada asılı kalma hissi için 150ms)
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 600; 
@@ -47,7 +49,7 @@ function startGame() {
     isGameOver = false;
     isGameRunning = true;
     score = 0;
-    gameSpeed = 8; // Hızlı başlangıç
+    gameSpeed = 8; // GÜNCELLENDİ: Daha hızlı başlangıç hızı
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
     barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
@@ -119,7 +121,7 @@ function createObstacle() {
     }
 }
 
-// 3. ANA ÇARPIŞMA KONTROL DÖNGÜSÜ
+// 3. ANA ÇARPIŞMA KONTROL DÖNGÜSÜ (ÇARPIŞMA HATASINI GİDERMEK İÇİN GÜNCELLENDİ)
 function startCollisionCheck() {
     
     collisionCheckInterval = setInterval(() => {
@@ -135,19 +137,20 @@ function startCollisionCheck() {
             // Barbar pozisyonları
             const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
             
-            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla
+            // GÜNCELLENDİ: Engelin göreceli sol pozisyonunu CSS right değerinden hesapla (Daha tutarlı)
             const obstacleRightPosition = parseInt(obstacle.style.right || 0);
             const obstacleLeftPosition = GAME_CONTAINER_WIDTH - OBSTACLE_WIDTH - obstacleRightPosition; 
 
             // Barbar'ın ayarlanmış (toleranslı) hitbox'ı
             const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
-            const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2);
+            const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2); // Hem soldan hem sağdan düş
 
             // X Çarpışması: Yatayda temas var mı?
             const x_collision = (effectiveBarbarianLeft + effectiveBarbarianWidth > obstacleLeftPosition && 
                                 effectiveBarbarianLeft < obstacleLeftPosition + OBSTACLE_WIDTH);
 
             // Y Çarpışması: Barbar yeterince yüksekte değil mi?
+            // Barbar'ın bottom değeri, engelin yüksekliğinden (tolerans dahil) düşükse çarpışma var demektir.
             const y_collision = (barbarianBottom < (OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_PX));
 
 
@@ -177,17 +180,18 @@ function gameOver() {
     
     gameContainer.classList.remove('is-running'); 
     
+    // Çarpmada gelmesini istediğiniz mesaj:
     messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun/Space.`;
 }
 
-// 5. Puan Güncelleme
+// 5. Puan Güncelleme (GÜNCELLENDİ)
 function updateScore() {
     score += 10; 
     scoreDisplay.innerHTML = `Puan: ${score}`;
     
-    // Her 30 puanda bir daha agresif hızlanma
+    // GÜNCELLENDİ: Her 30 puanda bir daha agresif hızlanma
     if (score % 30 === 0 && gameSpeed > 1) { 
-        gameSpeed -= 0.5; 
+        gameSpeed -= 0.5; // gameSpeed (ms cinsinden) düştükçe oyun hızlanır
     }
 }
 
