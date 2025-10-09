@@ -23,7 +23,7 @@ const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
 // Tolerans Ayarları
-const BARBARIAN_HITBOX_ADJUSTMENT = 5; // Yatayda 5 piksel tolerans
+const BARBARIAN_HITBOX_ADJUSTMENT = 15; // Yatayda 5 piksel tolerans
 const OBSTACLE_TOLERANCE_PX = 20; // GÜNCELLENDİ: Hatalı yanmaları önlemek için 5'ten 8'e yükseltildi
 
 // Zıplama Parametreleri
