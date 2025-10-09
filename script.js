@@ -5,221 +5,190 @@ const scoreDisplay = document.getElementById('score');
 const startScreen = document.getElementById('start-screen'); 
 const messageDisplay = document.getElementById('message'); 
 
-let isJumping = false;
-let isGameOver = true; 
-let isGameRunning = false; 
+// --- OYUN AYARLARI ---
+let gameLoopId; // requestAnimationFrame için döngü kimliği
 let score = 0;
-let gameSpeed = 10; 
-let obstacleIntervals = []; 
-let obstacleGenerationTimeout; 
-let collisionCheckInterval; 
+let gameSpeed = 8; // Başlangıç oyun hızı (Piksel/Kare)
+let isGameOver = true; 
+let isJumping = false;
+let jumpVelocity = 0; // Anlık zıplama hızı
+const GRAVITY = 1;      // Yerçekimi kuvveti
+const JUMP_POWER = 18;  // Zıplama gücü (Yerden ayrılma hızı)
+const GROUND_Y = 0;     // Zemin seviyesi (CSS bottom: 0)
 
-// Boyutları koruyoruz
+// --- ÇARPIŞMA & BOYUT AYARLARI ---
 const BARBARIAN_WIDTH = 30;
 const BARBARIAN_HEIGHT = 30;
+const BARBARIAN_X = 50; // Barbar'ın sabit X pozisyonu (left: 50px)
 const OBSTACLE_WIDTH = 28;
 const OBSTACLE_HEIGHT = 28;
 
-// Tolerans Ayarları (ÇARPIŞMA İÇİN KRİTİK AYARLAR)
-const BARBARIAN_HITBOX_ADJUSTMENT = 6; // Yatayda 6 piksel tolerans (Hitbox küçüldü)
-const OBSTACLE_TOLERANCE_PX = 15; // KESİN ÇÖZÜM: Dikeyde 15 piksel tolerans (Çarpışma sorununu tamamen bitirir)
+// ÖNCEKİ AYARLARIMIZI KORUYORUZ: (Görünmez çarpışmayı önlemek için tolerans)
+const OBSTACLE_TOLERANCE_Y = 15; // Dikey tolerans 
+const BARBARIAN_TOLERANCE_X = 6; // Yatay hitbox küçültme
 
-// Zıplama Parametreleri
-const JUMP_HEIGHT = '100px'; 
-const JUMP_DURATION_MS = 50;  // Hızlı kalkış
-const FALL_DURATION_MS = 150; // Yavaş iniş (Havada asılı kalma hissi)
-const BARBARIAN_LEFT_POSITION = 50;
-const GAME_CONTAINER_WIDTH = 600; 
-const GROUND_POSITION_PX = 0; 
-
+let obstacleTimer = 0; // Engel oluşumunu kontrol eden zamanlayıcı
+let obstacleGenerationRate = 120; // Engel oluşum sıklığı (her 120 karede bir)
+let obstacles = []; // Aktif engellerin tutulduğu dizi
 
 // --- FONKSİYONLAR ---
 
+// Yeni: Oyun Başlangıcı
 function startGame() {
-    obstacleIntervals.forEach(clearInterval);
-    obstacleIntervals = []; 
-    clearTimeout(obstacleGenerationTimeout);
-    clearInterval(collisionCheckInterval); 
-    
-    document.querySelectorAll('.obstacle').forEach(obs => obs.remove());
-
     isGameOver = false;
-    isGameRunning = true;
     score = 0;
-    gameSpeed = 8; // BAŞLANGIÇ HIZI
+    gameSpeed = 8;
+    barbarian.style.bottom = GROUND_Y + 'px';
+    barbarian.classList.remove('barbarian-burned');
+    gameContainer.classList.add('is-running');
+    obstacles.forEach(obs => obs.element.remove());
+    obstacles = [];
+    obstacleTimer = 0;
     scoreDisplay.innerHTML = `Puan: 0`;
     gameContainer.style.borderBottom = '3px solid #663300';
-    barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
     
-    barbarian.classList.remove('barbarian-burned');
-    
-    gameContainer.classList.add('is-running');
-    
-    generateObstacles(); 
-    startCollisionCheck(); 
+    // Eski interval'ler yerine tek döngü başlatılıyor
+    if (gameLoopId) cancelAnimationFrame(gameLoopId);
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
 
-
-// 1. Zıplama Mantığı
-function jump() {
-    if (!isGameRunning || isJumping) return; 
-    
-    isJumping = true;
-    
-    barbarian.style.transition = `bottom ${JUMP_DURATION_MS}ms ease-out`;
-    barbarian.style.bottom = JUMP_HEIGHT; 
-
-    setTimeout(() => {
-        barbarian.style.transition = `bottom ${FALL_DURATION_MS}ms ease-in`; 
-        barbarian.style.bottom = GROUND_POSITION_PX + 'px'; 
-        
-        setTimeout(() => {
-            isJumping = false;
-            barbarian.style.transition = 'bottom 0.1s ease-out'; 
-            
-        }, FALL_DURATION_MS); 
-
-    }, JUMP_DURATION_MS); 
-}
-
-// 2. Engel Oluşturma ve Hareket Mantığı
+// Yeni: Engel Objeleri Oluşturma
 function createObstacle() {
-    if (!isGameRunning) return;
-
-    const obstacle = document.createElement('div');
-    obstacle.classList.add('obstacle');
-    gameContainer.appendChild(obstacle);
-
-    let obstaclePosition = GAME_CONTAINER_WIDTH; 
-    const moveStep = 2; 
+    const element = document.createElement('div');
+    element.classList.add('obstacle');
+    gameContainer.appendChild(element);
     
-    const obstacleInterval = setInterval(moveObstacle, gameSpeed); 
-    obstacleIntervals.push(obstacleInterval); 
-    
-    function moveObstacle() {
-        if (!isGameRunning) {
-            clearInterval(obstacleInterval);
-            return;
-        }
-        
-        obstaclePosition -= moveStep; 
-        obstacle.style.right = (GAME_CONTAINER_WIDTH - obstaclePosition) + 'px';
+    // Obje olarak tutuluyor ki çarpışma ve hareket kolayca yönetilsin
+    obstacles.push({
+        element: element,
+        x: 600, // Başlangıç pozisyonu (oyun alanı genişliği)
+        y: GROUND_Y 
+    });
+}
 
-        // Engel ekran dışına çıktıysa PUAN AL
-        if (obstaclePosition < -OBSTACLE_WIDTH) { 
-            clearInterval(obstacleInterval);
-            obstacle.remove();
-            updateScore(); 
-        }
+// Yeni: Puan ve Hız Güncelleme
+function updateScore() {
+    score += 1; // Puanı her karede 0.1 artırmak yerine, her saniye yaklaşık 60 puan artar
+    scoreDisplay.innerHTML = `Puan: ${Math.floor(score / 10)}`; // Puanı 10'a bölerek yavaşlatıyoruz
+
+    // Her 300 puan (yaklaşık 30 skor) için hızlanma
+    if (Math.floor(score / 10) % 30 === 0 && gameSpeed < 20) { 
+        gameSpeed += 0.1; // Hızı yavaşça artır
     }
 }
 
-// 3. ANA ÇARPIŞMA KONTROL DÖNGÜSÜ
-function startCollisionCheck() {
-    
-    collisionCheckInterval = setInterval(() => {
-        if (!isGameRunning) {
-            clearInterval(collisionCheckInterval);
-            return;
-        }
-
-        const currentObstacles = document.querySelectorAll('.obstacle');
-        
-        currentObstacles.forEach(obstacle => {
-            
-            const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
-            
-            // Engelin göreceli sol pozisyonunu hesapla
-            const obstacleRightPosition = parseInt(obstacle.style.right || 0);
-            const obstacleLeftPosition = GAME_CONTAINER_WIDTH - OBSTACLE_WIDTH - obstacleRightPosition; 
-
-            // Barbar'ın ayarlanmış (toleranslı) hitbox'ı (YATAY KÜÇÜLTME)
-            const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
-            const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2); 
-
-            // X Çarpışması: Yatayda temas var mı?
-            const x_collision = (effectiveBarbarianLeft + effectiveBarbarianWidth > obstacleLeftPosition && 
-                                effectiveBarbarianLeft < obstacleLeftPosition + OBSTACLE_WIDTH);
-
-            // Y Çarpışması: Barbar yeterince yüksekte değil mi? (DİKEY TOLERANS KULLANILDI)
-            const y_collision = (barbarianBottom < (OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_PX));
-
-
-            // KESİN ÇARPIŞMA!
-            if (x_collision && y_collision) {
-                
-                obstacleIntervals.forEach(clearInterval);
-                gameOver();
-            }
-        });
-    }, 20); // 20ms = Saniyede 50 kontrol
+// Yeni: Zıplama
+function jump() {
+    if (isGameOver) {
+        startGame();
+    } else if (!isJumping) {
+        isJumping = true;
+        jumpVelocity = JUMP_POWER; // Zıplama gücü ile yukarı fırlat
+        // CSS transition'u burada kapatıyoruz, çünkü pozisyonu JS yönetecek
+        barbarian.style.transition = 'none'; 
+    }
 }
 
+// Yeni: Çarpışma Kontrolü (Daha güvenilir)
+function checkCollision() {
+    const barbarianY = parseInt(barbarian.style.bottom);
 
-// 4. Oyun Bitti Fonksiyonu
+    obstacles.forEach((obstacle, index) => {
+        
+        // 1. Yatay Çarpışma (Hitbox küçültülmüş)
+        const effectiveBarbarianLeft = BARBARIAN_X + BARBARIAN_TOLERANCE_X;
+        const effectiveBarbarianRight = BARBARIAN_X + BARBARIAN_WIDTH - BARBARIAN_TOLERANCE_X;
+        
+        const obstacleLeft = obstacle.x;
+        const obstacleRight = obstacle.x + OBSTACLE_WIDTH;
+
+        const x_collision = (effectiveBarbarianRight > obstacleLeft && effectiveBarbarianLeft < obstacleRight);
+
+        // 2. Dikey Çarpışma (Tolerans dahil)
+        // Eğer Barbar'ın yerden yüksekliği (barbarianY), engelin yüksekliğinden (tolerans çıkarılmış) az ise
+        const y_collision = (barbarianY < OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_Y);
+
+        // KESİN ÇARPIŞMA!
+        if (x_collision && y_collision) {
+            gameOver();
+        }
+        
+        // Engel ekran dışına çıktıysa temizle
+        if (obstacle.x < -OBSTACLE_WIDTH) {
+            obstacle.element.remove();
+            obstacles.splice(index, 1);
+        }
+    });
+}
+
+// YENİ: ANA OYUN DÖNGÜSÜ (Dino Oyunu Gibi Akıcı)
+function gameLoop() {
+    if (isGameOver) return;
+
+    // 1. Barbar Hareketi (Zıplama)
+    if (isJumping) {
+        jumpVelocity -= GRAVITY;
+        let newY = parseInt(barbarian.style.bottom) + jumpVelocity;
+        
+        if (newY <= GROUND_Y) {
+            newY = GROUND_Y;
+            isJumping = false;
+            jumpVelocity = 0;
+            // Zıplama bittiğinde tekrar CSS transition'ı açabiliriz (bu, dekoratiftir)
+            barbarian.style.transition = 'bottom 0.1s ease-out';
+        }
+        barbarian.style.bottom = newY + 'px';
+    }
+
+    // 2. Engel Hareketi ve Oluşumu
+    obstacleTimer++;
+    if (obstacleTimer >= obstacleGenerationRate / (gameSpeed / 8)) { // Hıza göre engel sıklığı değişir
+        createObstacle();
+        obstacleTimer = 0;
+    }
+
+    // Aktif engelleri hareket ettir
+    obstacles.forEach(obstacle => {
+        obstacle.x -= gameSpeed;
+        obstacle.element.style.right = (600 - obstacle.x) + 'px';
+    });
+    
+    // 3. Çarpışma ve Puan Kontrolü
+    checkCollision();
+    updateScore(); 
+
+    // Tekrar Döngü
+    gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+// Oyun Bitti Fonksiyonu
 function gameOver() {
     isGameOver = true;
-    isGameRunning = false;
-    
-    obstacleIntervals.forEach(clearInterval);
-    clearTimeout(obstacleGenerationTimeout);
-    clearInterval(collisionCheckInterval); 
-    
-    gameContainer.style.borderBottom = '3px solid red';
+    cancelAnimationFrame(gameLoopId);
     
     barbarian.classList.add('barbarian-burned');
+    gameContainer.classList.remove('is-running');
+    gameContainer.style.borderBottom = '3px solid red';
     
-    gameContainer.classList.remove('is-running'); 
-    
-    messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun/Space.`;
-}
-
-// 5. Puan Güncelleme (HIZLANMA MANTIĞI)
-function updateScore() {
-    score += 10; 
-    scoreDisplay.innerHTML = `Puan: ${score}`;
-    
-    // Her 30 puanda bir daha agresif hızlanma
-    if (score % 30 === 0 && gameSpeed > 1) { 
-        gameSpeed -= 0.5; 
-    }
-}
-
-// 6. Engel Döngüsünü Başlatma
-function generateObstacles() {
-    let randomTime = Math.random() * 2000 + 1000; 
-    createObstacle();
-    
-    if (isGameRunning) {
-        obstacleGenerationTimeout = setTimeout(generateObstacles, randomTime);
-    }
+    messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${Math.floor(score / 10)}. Tekrar denemek için dokunun/Space.`;
 }
 
 // --- GİRİŞ YÖNETİMİ ---
-
 document.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
-        if (!isGameRunning && isGameOver) {
-            startGame();
-        } else if (isGameRunning) {
-            jump();
-        }
         event.preventDefault(); 
+        jump(); // Hem başlatma hem zıplama
     }
 });
 
-document.addEventListener('click', (event) => {
-    if (isGameRunning) {
-        jump();
-    }
+document.addEventListener('click', () => {
+    jump();
 });
 
-document.addEventListener('touchstart', (event) => {
-    if (isGameRunning) {
-        jump();
-    }
+document.addEventListener('touchstart', () => {
+    jump();
 });
 
 
-startScreen.addEventListener('click', startGame);
-startScreen.addEventListener('touchstart', startGame);
+startScreen.addEventListener('click', jump); 
+startScreen.addEventListener('touchstart', jump); 
