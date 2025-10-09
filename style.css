@@ -28,7 +28,8 @@ body {
     position: relative;
     overflow: hidden;
 
-    animation: scrollBackground 3s linear infinite paused; 
+    /* GÜNCELLENDİ: Hız 3s'den 1.5s'ye çıkarıldı */
+    animation: scrollBackground 1.5s linear infinite paused; 
 }
 
 .is-running {
@@ -48,8 +49,8 @@ body {
     position: absolute;
     bottom: 0;
     left: 50px;
-    /* GÜNCELLENDİ: Zıplama animasyonunu hızlandırdık (0.1s) */
-    transition: bottom 0.1s ease-out; 
+    /* GÜNCELLENDİ: Zıplama animasyonunu hızlandırdık (0.1s yerine 0.05s) */
+    transition: bottom 0.05s ease-out; 
     
     animation: none;
 }
