@@ -29,7 +29,7 @@ const OBSTACLE_TOLERANCE_PX = 8; // GÜNCELLENDİ: Hatalı yanmaları önlemek i
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
 const JUMP_DURATION_MS = 50;  // GÜNCELLENDİ: Hızlı kalkış
-const FALL_DURATION_MS = 150; // GÜNCELLENDİ: Yavaş iniş (Havada asılı kalma hissi için 150ms)
+const FALL_DURATION_MS = 300; // GÜNCELLENDİ: Yavaş iniş (Havada asılı kalma hissi için 150ms)
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 600; 
 const GROUND_POSITION_PX = 0; 
