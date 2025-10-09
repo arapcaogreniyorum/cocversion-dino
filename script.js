@@ -27,12 +27,12 @@ const BARBARIAN_HITBOX_ADJUSTMENT = 15; // Yatayda 5 piksel tolerans
 const OBSTACLE_TOLERANCE_PX = 20; // GÜNCELLENDİ: Hatalı yanmaları önlemek için 5'ten 8'e yükseltildi
 
 // Zıplama Parametreleri
-const JUMP_HEIGHT = '100px'; 
+const JUMP_HEIGHT = '200px'; 
 const JUMP_DURATION_MS = 50;  // GÜNCELLENDİ: Hızlı kalkış
 const FALL_DURATION_MS = 150; // GÜNCELLENDİ: Yavaş iniş (Havada asılı kalma hissi için 150ms)
 const BARBARIAN_LEFT_POSITION = 50;
 const GAME_CONTAINER_WIDTH = 800; 
-const GROUND_POSITION_PX = 5; 
+const GROUND_POSITION_PX = 0; 
 
 
 // --- FONKSİYONLAR ---
