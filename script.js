@@ -181,7 +181,7 @@ function gameOver() {
     gameContainer.classList.remove('is-running'); 
     
     // Çarpmada gelmesini istediğiniz mesaj:
-    messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun/Space.`;
+    messageDisplay.innerHTML = `OYUN BİTTİ! Puanınız: ${score}. Tekrar denemek için dokunun`;
 }
 
 // 5. Puan Güncelleme (GÜNCELLENDİ)
