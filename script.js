@@ -2,7 +2,9 @@
 const barbarian = document.getElementById('barbarian');
 const gameContainer = document.getElementById('game-container');
 const scoreDisplay = document.getElementById('score');
-const startScreen = document.getElementById('start-screen'); 
+const startScreen = document.getElementById('start-screen');
+// messageDisplay'ı tanımlamadıysanız DOM'dan çekelim (index.html'e göre)
+const messageDisplay = document.getElementById('message'); // EKLENDİ
 
 let isJumping = false;
 let isGameOver = true; 
@@ -21,7 +23,7 @@ const OBSTACLE_HEIGHT = 28;
 
 // Tolerans Ayarları
 const BARBARIAN_HITBOX_ADJUSTMENT = 5; // Yatayda 5 piksel tolerans (Çarpışma alanını küçültür)
-const OBSTACLE_TOLERANCE_PX = 5; // Dikeyde 5 piksel tolerans (Yere yakın hatalı okumaları engeller)
+const OBSTACLE_TOLERANCE_PX = 8; // Dikeyde 8 piksel tolerans (Yere yakın hatalı okumaları engeller - 5'ten 8'e yükseltildi)
 
 // Zıplama Parametreleri
 const JUMP_HEIGHT = '100px'; 
@@ -114,7 +116,7 @@ function createObstacle() {
     }
 }
 
-// 3. YENİ ANA ÇARPIŞMA KONTROL DÖNGÜSÜ
+// 3. YENİ ANA ÇARPIŞMA KONTROL DÖNGÜSÜ (GÜNCELLENDİ)
 function startCollisionCheck() {
     // Saniyede 50 kez (her 20ms'de bir) çarpışmayı kontrol et
     collisionCheckInterval = setInterval(() => {
@@ -126,29 +128,30 @@ function startCollisionCheck() {
         const currentObstacles = document.querySelectorAll('.obstacle');
         
         currentObstacles.forEach(obstacle => {
-            const obstacleRect = obstacle.getBoundingClientRect();
-            const gameRect = gameContainer.getBoundingClientRect();
-
-            // Engelin göreceli sol pozisyonu
-            const obstacleLeftPosition = obstacleRect.left - gameRect.left;
             
             // Barbar pozisyonları
             const barbarianBottom = parseInt(window.getComputedStyle(barbarian).getPropertyValue('bottom'));
             
+            // Engelin göreceli sol pozisyonunu CSS right değerinden hesapla (Daha tutarlı)
+            const obstacleRightPosition = parseInt(obstacle.style.right || 0);
+            const obstacleLeftPosition = GAME_CONTAINER_WIDTH - OBSTACLE_WIDTH - obstacleRightPosition; 
+
             // Barbar'ın ayarlanmış (toleranslı) hitbox'ı
             const effectiveBarbarianLeft = BARBARIAN_LEFT_POSITION + BARBARIAN_HITBOX_ADJUSTMENT;
-            const effectiveBarbarianWidth = BARBARIAN_WIDTH - BARBARIAN_HITBOX_ADJUSTMENT;
+            const effectiveBarbarianWidth = BARBARIAN_WIDTH - (BARBARIAN_HITBOX_ADJUSTMENT * 2); // Hem soldan hem sağdan düş
 
             // X Çarpışması: Yatayda temas var mı?
             const x_collision = (effectiveBarbarianLeft + effectiveBarbarianWidth > obstacleLeftPosition && 
                                 effectiveBarbarianLeft < obstacleLeftPosition + OBSTACLE_WIDTH);
 
             // Y Çarpışması: Barbar yeterince yüksekte değil mi?
+            // Barbar'ın bottom değeri, engelin yüksekliğinden (tolerans dahil) düşükse çarpışma var demektir.
             const y_collision = (barbarianBottom < (OBSTACLE_HEIGHT - OBSTACLE_TOLERANCE_PX));
 
 
             // KESİN ÇARPIŞMA!
             if (x_collision && y_collision) {
+                
                 obstacleIntervals.forEach(clearInterval);
                 gameOver();
             }
